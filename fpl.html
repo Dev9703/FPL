@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FPL Mock Auction Hub</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: #f8fafc; }
+        .glass-panel { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .hidden-view { display: none !important; }
+        
+        /* Custom file input styling */
+        input[type=file]::file-selector-button {
+            margin-right: 15px; border: none; background: #10b981; padding: 8px 16px;
+            border-radius: 8px; color: #fff; cursor: pointer; font-weight: 600; font-size: 12px;
+        }
+        input[type=file]::file-selector-button:hover { background: #059669; }
+
+        /* Hide scrollbar for the swipeable carousel but keep functionality */
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="min-h-screen p-4 flex flex-col items-center pb-12">
+
+    <!-- Header -->
+    <header class="w-full max-w-md text-center mt-4 mb-6">
+        <h1 class="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400 tracking-tight">
+            FPL Mock Auction
+        </h1>
+        <p class="text-slate-400 text-sm mt-1 font-semibold" id="header-status">Login to manage your fantasy squad.</p>
+        <button id="logout-btn" class="hidden-view mt-2 text-xs text-red-400 border border-red-900/50 px-3 py-1 rounded-full mx-auto hover:bg-red-900/30 transition">Log Out</button>
+    </header>
+
+    <!-- 1. AUTHENTICATION VIEW -->
+    <main id="auth-container" class="glass-panel p-6 rounded-2xl w-full max-w-md shadow-2xl transition-all">
+        <form id="auth-form" class="space-y-4">
+            <div>
+                <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Email</label>
+                <input type="email" id="email" placeholder="manager@example.com" class="w-full p-3 rounded-lg bg-slate-800 border border-slate-700 text-white focus:outline-none focus:border-blue-500">
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Password</label>
+                <input type="password" id="password" placeholder="••••••••" class="w-full p-3 rounded-lg bg-slate-800 border border-slate-700 text-white focus:outline-none focus:border-blue-500">
+                <div class="text-right mt-1">
+                    <button type="button" id="forgot-password-btn" class="text-[10px] text-blue-400 hover:text-blue-300 underline">Forgot Password?</button>
+                </div>
+            </div>
+            <div class="pt-2 border-t border-slate-700">
+                <label class="block text-xs font-bold text-emerald-400 uppercase mb-1">Manager Username (For Registration Only)</label>
+                <input type="text" id="username" placeholder="e.g. Deva" class="w-full p-3 rounded-lg bg-slate-800 border border-emerald-900/50 text-white focus:outline-none focus:border-emerald-500">
+            </div>
+            <div id="error-msg" class="text-red-400 text-xs hidden-view bg-red-900/20 p-2 rounded border border-red-800/50"></div>
+            <div class="flex gap-2 pt-2">
+                <button type="button" id="login-btn" class="flex-1 bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-lg transition">Log In</button>
+                <button type="button" id="register-btn" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-lg transition">Register</button>
+            </div>
+        </form>
+    </main>
+
+    <!-- 2. EDITION SELECTOR VIEW -->
+    <main id="edition-container" class="hidden-view glass-panel p-6 rounded-2xl w-full max-w-md text-center">
+        <h2 class="text-xl font-bold mb-4">Select Auction Edition</h2>
+        <div class="grid grid-cols-2 gap-3">
+            <button class="edition-btn p-4 rounded-xl bg-slate-800 border border-slate-700 active:bg-blue-900 text-sm font-bold transition" data-edition="FPL Auction 1">Edition 1</button>
+            <button class="edition-btn p-4 rounded-xl bg-slate-800 border border-slate-700 active:bg-blue-900 text-sm font-bold transition" data-edition="FPL Auction 2">Edition 2</button>
+            <button class="edition-btn p-4 rounded-xl bg-slate-800 border border-slate-700 active:bg-blue-900 text-sm font-bold transition" data-edition="FPL Auction 3">Edition 3</button>
+            <button class="edition-btn p-4 rounded-xl bg-slate-800 border border-slate-700 active:bg-blue-900 text-sm font-bold transition" data-edition="FPL Auction 4">Edition 4</button>
+        </div>
+    </main>
+
+    <!-- 3. DASHBOARD (Upload or View) -->
+    <main id="dashboard-container" class="hidden-view glass-panel p-6 rounded-2xl w-full max-w-md mt-4 space-y-4">
+        <div class="flex justify-between items-center border-b border-slate-700 pb-2">
+            <h2 class="text-lg font-bold text-emerald-400" id="current-edition-title">Edition</h2>
+            <button id="back-btn" class="text-xs text-slate-400 underline hover:text-white transition">Change Edition</button>
+        </div>
+
+        <button type="button" id="open-view-teams-btn" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-lg shadow-lg active:scale-95 transition mb-6">
+            👀 View Uploaded Teams
+        </button>
+
+        <div class="space-y-4 border-t border-slate-700 pt-6">
+            <h3 class="font-bold text-slate-300">Submit Your Roster</h3>
+            
+            <!-- 🔴 NEW: IPL Franchise Dropdown -->
+            <div>
+                <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Franchise Name</label>
+                <select id="team-name" class="w-full p-3 rounded-lg bg-slate-800 border border-slate-700 text-white focus:outline-none focus:border-emerald-500">
+                    <option value="" disabled selected>Select an IPL Team...</option>
+                    <option value="Chennai Super Kings (CSK)">Chennai Super Kings (CSK)</option>
+                    <option value="Delhi Capitals (DC)">Delhi Capitals (DC)</option>
+                    <option value="Gujarat Titans (GT)">Gujarat Titans (GT)</option>
+                    <option value="Kolkata Knight Riders (KKR)">Kolkata Knight Riders (KKR)</option>
+                    <option value="Lucknow Super Giants (LSG)">Lucknow Super Giants (LSG)</option>
+                    <option value="Mumbai Indians (MI)">Mumbai Indians (MI)</option>
+                    <option value="Punjab Kings (PBKS)">Punjab Kings (PBKS)</option>
+                    <option value="Rajasthan Royals (RR)">Rajasthan Royals (RR)</option>
+                    <option value="Royal Challengers Bengaluru (RCB)">Royal Challengers Bengaluru (RCB)</option>
+                    <option value="Sunrisers Hyderabad (SRH)">Sunrisers Hyderabad (SRH)</option>
+                </select>
+            </div>
+            
+            <div>
+                <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Squad Screenshot</label>
+                <input type="file" id="squad-image" accept="image/*" class="w-full p-2 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 text-sm">
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Playing 12 (Inc. Impact Player)</label>
+                <textarea id="playing-xi" placeholder="1. Opener&#10;2. Opener&#10;...&#10;12. Impact Player" class="w-full p-3 rounded-lg bg-slate-800 border border-slate-700 text-white h-32 text-sm"></textarea>
+            </div>
+
+            <button type="button" id="submit-squad-btn" class="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white font-bold py-3 rounded-lg shadow-lg active:scale-95 transition">
+                Submit
+            </button>
+        </div>
+    </main>
+
+    <!-- 4. CAROUSEL VIEW -->
+    <main id="carousel-container-view" class="hidden-view w-full max-w-md mt-4 space-y-4">
+        <div class="flex justify-between items-center mb-2 px-2">
+            <h2 class="text-lg font-bold text-blue-400">Submitted Squads</h2>
+            <button id="close-carousel-btn" class="text-xs bg-slate-800 px-3 py-1 rounded text-white">Back</button>
+        </div>
+
+        <p id="loading-text" class="text-center text-slate-400 text-sm py-10">Loading teams from server...</p>
+
+        <!-- Swipeable Track -->
+        <div id="carousel-track" class="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-6 hide-scrollbar">
+            <!-- Cards Injected Here via JS -->
+        </div>
+        <p class="text-center text-[10px] text-slate-500 uppercase tracking-widest mt-[-10px]">Swipe left/right to view</p>
+    </main>
+
+    <!-- FULL SCREEN IMAGE MODAL -->
+    <div id="image-modal" class="fixed inset-0 bg-black/95 hidden-view flex flex-col items-center justify-center z-50 p-4 backdrop-blur-sm">
+        <button onclick="closeModal()" class="absolute top-6 right-6 text-white bg-slate-800 hover:bg-slate-700 rounded-full w-10 h-10 flex items-center justify-center font-bold text-xl border border-slate-600 shadow-lg z-50">✕</button>
+        <img id="modal-img" class="max-w-full max-h-[85vh] object-contain rounded border border-slate-800 shadow-2xl transition-transform transform scale-100">
+        <p class="text-slate-400 mt-4 text-sm font-medium tracking-wide">Pinch to zoom / Swipe to move</p>
+    </div>
+
+    <!-- FIREBASE SDK -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, sendPasswordResetEmail, updateProfile } 
+        from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getFirestore, collection, addDoc, serverTimestamp, getDocs, query, where } 
+        from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getStorage, ref, uploadBytes, getDownloadURL } 
+        from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAKJqembDfyPzBPlvRx9_Bgp5yQMLYPvQU",
+            authDomain: "fpl-hub-5d570.firebaseapp.com",
+            projectId: "fpl-hub-5d570",
+            storageBucket: "fpl-hub-5d570.firebasestorage.app",
+            messagingSenderId: "746751574267",
+            appId: "1:746751574267:web:e0cc6af345f1f6f583705e",
+            measurementId: "G-EYDQ17DL94"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const storage = getStorage(app); 
+
+        const authView = document.getElementById('auth-container');
+        const editionView = document.getElementById('edition-container');
+        const dashboardView = document.getElementById('dashboard-container');
+        const carouselView = document.getElementById('carousel-container-view');
+        const headerStatus = document.getElementById('header-status');
+        const logoutBtn = document.getElementById('logout-btn');
+        let selectedEdition = "";
+
+        function showView(view) {
+            authView.classList.add('hidden-view');
+            editionView.classList.add('hidden-view');
+            dashboardView.classList.add('hidden-view');
+            carouselView.classList.add('hidden-view');
+            view.classList.remove('hidden-view');
+        }
+
+        // --- AUTH LOGIC ---
+        document.getElementById('register-btn').addEventListener('click', () => {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const username = document.getElementById('username').value;
+            
+            if(!username) return alert("Please enter a Manager Username to register.");
+
+            createUserWithEmailAndPassword(auth, email, password)
+                .then((userCredential) => {
+                    return updateProfile(userCredential.user, { displayName: username });
+                })
+                .then(() => {
+                    headerStatus.innerText = `Dear ${username}`;
+                })
+                .catch(err => alert(err.message));
+        });
+
+        document.getElementById('login-btn').addEventListener('click', () => {
+            signInWithEmailAndPassword(auth, document.getElementById('email').value, document.getElementById('password').value)
+                .catch(err => alert("Invalid login."));
+        });
+
+        document.getElementById('forgot-password-btn').addEventListener('click', () => {
+            const email = document.getElementById('email').value;
+            if (!email) return alert("Please enter your email address in the Email box first, then click Forgot Password.");
+            sendPasswordResetEmail(auth, email)
+                .then(() => alert("Password reset link sent to your email!"))
+                .catch(err => alert(err.message));
+        });
+
+        logoutBtn.addEventListener('click', () => signOut(auth));
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                logoutBtn.classList.remove('hidden-view');
+                const displayName = user.displayName || user.email.split('@')[0];
+                headerStatus.innerText = `Dear ${displayName}`;
+                showView(editionView);
+            } else {
+                logoutBtn.classList.add('hidden-view');
+                headerStatus.innerText = "Login to manage your fantasy squad.";
+                showView(authView);
+            }
+        });
+
+        // --- EDITION SELECTOR ---
+        document.querySelectorAll('.edition-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                selectedEdition = e.target.getAttribute('data-edition');
+                document.getElementById('current-edition-title').innerText = selectedEdition;
+                showView(dashboardView);
+            });
+        });
+
+        document.getElementById('back-btn').addEventListener('click', () => showView(editionView));
+
+        // --- SUBMIT LOGIC ---
+        document.getElementById('submit-squad-btn').addEventListener('click', async () => {
+            const teamName = document.getElementById('team-name').value;
+            const xi = document.getElementById('playing-xi').value;
+            const imageFile = document.getElementById('squad-image').files[0];
+            const btn = document.getElementById('submit-squad-btn');
+
+            if(!teamName || !xi) return alert("Please select a Franchise Name and fill out the Playing 12 field!");
+
+            btn.disabled = true;
+            let imageUrl = "https://via.placeholder.com/400x400.png?text=No+Screenshot";
+
+            try {
+                if (imageFile) {
+                    btn.innerText = "Uploading Image...";
+                    const imageRef = ref(storage, `squad_images/${Date.now()}_${imageFile.name}`);
+                    await uploadBytes(imageRef, imageFile);
+                    imageUrl = await getDownloadURL(imageRef);
+                }
+
+                btn.innerText = "Saving Data...";
+                await addDoc(collection(db, "teams"), {
+                    manager_id: auth.currentUser.uid,
+                    manager_email: auth.currentUser.email,
+                    manager_name: auth.currentUser.displayName || "Unknown",
+                    edition: selectedEdition,
+                    team_name: teamName,
+                    playing_xi: xi,
+                    image_url: imageUrl,
+                    timestamp: serverTimestamp()
+                });
+                
+                alert("Squad successfully submitted!");
+                
+                document.getElementById('team-name').value = '';
+                document.getElementById('playing-xi').value = '';
+                document.getElementById('squad-image').value = '';
+                btn.innerText = "Submit";
+                
+            } catch (error) {
+                alert("Error saving: " + error.message);
+                btn.innerText = "Submit";
+            } finally {
+                btn.disabled = false;
+            }
+        });
+
+        // --- CAROUSEL VIEWER LOGIC ---
+        document.getElementById('open-view-teams-btn').addEventListener('click', async () => {
+            showView(carouselView);
+            const track = document.getElementById('carousel-track');
+            const loading = document.getElementById('loading-text');
+            track.innerHTML = '';
+            loading.classList.remove('hidden-view');
+
+            try {
+                const q = query(collection(db, "teams"), where("edition", "==", selectedEdition));
+                const querySnapshot = await getDocs(q);
+                
+                loading.classList.add('hidden-view');
+
+                if (querySnapshot.empty) {
+                    track.innerHTML = `<div class="w-full text-center text-slate-500 py-10">No teams submitted for this edition yet.</div>`;
+                    return;
+                }
+
+                querySnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    const escapedXi = data.playing_xi.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+                    const displayName = data.manager_name || data.manager_email.split('@')[0];
+                    
+                    track.innerHTML += `
+                        <div class="min-w-[90%] md:min-w-[400px] snap-center bg-slate-800/80 p-5 rounded-2xl border border-slate-700 flex flex-col shrink-0 shadow-xl">
+                            <h3 class="text-xl font-black text-center mb-4 text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400">${data.team_name}</h3>
+                            
+                            <div class="grid grid-cols-2 gap-4 flex-1">
+                                <!-- Left: Clickable Image -->
+                                <div class="flex flex-col items-center justify-start cursor-pointer group" onclick="openModal('${data.image_url}')">
+                                    <div class="w-full h-40 rounded-xl overflow-hidden border-2 border-slate-600 group-hover:border-emerald-500 transition relative bg-slate-900">
+                                        <img src="${data.image_url}" class="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition" alt="Squad Image">
+                                        <div class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
+                                            <span class="text-white text-xs font-bold bg-black/60 px-2 py-1 rounded-full">🔍 Zoom</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Right: Playing 12 Text -->
+                                <div class="bg-slate-900/80 p-3 rounded-xl border border-slate-700/50 overflow-y-auto h-40 custom-scrollbar">
+                                    <h4 class="text-[10px] uppercase font-bold text-slate-500 mb-2 border-b border-slate-700 pb-1">Playing 12 / Impact</h4>
+                                    <p class="text-xs text-slate-300 font-mono whitespace-pre-wrap leading-relaxed">${escapedXi}</p>
+                                </div>
+                            </div>
+                            <p class="text-center text-[10px] text-slate-500 mt-4 uppercase tracking-wider">Manager: <span class="font-bold text-slate-300">${displayName}</span></p>
+                        </div>
+                    `;
+                });
+            } catch (error) {
+                loading.innerText = "Failed to load teams.";
+                console.error(error);
+            }
+        });
+
+        document.getElementById('close-carousel-btn').addEventListener('click', () => showView(dashboardView));
+
+        // Global Modal Functions
+        window.openModal = (url) => {
+            document.getElementById('modal-img').src = url;
+            document.getElementById('image-modal').classList.remove('hidden-view');
+        }
+        window.closeModal = () => {
+            document.getElementById('image-modal').classList.add('hidden-view');
+            document.getElementById('modal-img').src = '';
+        }
+    </script>
+</body>
+</html>
