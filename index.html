@@ -274,7 +274,7 @@
                         const banDoc = await getDoc(doc(db, "settings", "banned_users"));
                         if (banDoc.exists() && banDoc.data()[user.email] === true) {
                             alert("Your access to this hub has been revoked by the Admin.");
-                            await signOut(auth); // Kick them out
+                            await signOut(auth); 
                             return; 
                         }
                     } catch(e) { console.error("Ban check failed", e); }
@@ -295,8 +295,14 @@
                 selectedEdition = e.target.getAttribute('data-edition');
                 document.getElementById('current-edition-title').innerText = selectedEdition;
                 
-                document.getElementById('admin-dashboard-panel').style.display = isAdmin ? 'block' : 'none';
-                document.getElementById('admin-nuke-panel').style.display = isAdmin ? 'block' : 'none';
+                // FIXED THE ADMIN PANEL VISIBILITY LOGIC HERE:
+                if (isAdmin) {
+                    document.getElementById('admin-dashboard-panel').classList.remove('hidden-view');
+                    document.getElementById('admin-nuke-panel').classList.remove('hidden-view');
+                } else {
+                    document.getElementById('admin-dashboard-panel').classList.add('hidden-view');
+                    document.getElementById('admin-nuke-panel').classList.add('hidden-view');
+                }
 
                 const teamSelect = document.getElementById('team-name');
                 const alertBox = document.getElementById('assignment-alert');
@@ -358,7 +364,6 @@
             if(!confirm(`Are you sure you want to revoke access for ${emailToBan}? They will not be able to log in.`)) return;
 
             try {
-                // Adds the email to the banned_users document
                 await setDoc(doc(db, "settings", "banned_users"), { [emailToBan]: true }, { merge: true });
                 alert(`${emailToBan} has been successfully deactivated.`);
                 document.getElementById('deactivate-email').value = '';
