@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+            <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -25,9 +25,13 @@
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #D4AF37; border-radius: 4px; }
+        
+        /* Voting slot dashed border */
+        .vote-slot { background: rgba(15, 23, 42, 0.6); border: 2px dashed rgba(234, 179, 8, 0.4); }
+        .vote-slot.filled { border-style: solid; border-color: rgba(234, 179, 8, 1); background: rgba(15, 23, 42, 0.9); }
     </style>
 </head>
-<body class="min-h-screen p-4 flex flex-col items-center pb-12">
+<body class="min-h-screen p-4 flex flex-col items-center pb-12 relative overflow-x-hidden">
 
     <header class="w-full max-w-md text-center mt-4 mb-6">
         <h1 class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-yellow-500 to-amber-600 tracking-tight uppercase">
@@ -49,13 +53,8 @@
                 <div class="relative">
                     <input type="password" id="password" placeholder="••••••••" class="w-full p-3 pr-10 rounded-lg bg-slate-900 border border-slate-700 text-white focus:outline-none focus:border-yellow-500 transition">
                     <button type="button" id="toggle-password" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-yellow-500 transition">
-                        <svg id="eye-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                        </svg>
-                        <svg id="eye-slash-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 hidden-view">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88" />
-                        </svg>
+                        <svg id="eye-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                        <svg id="eye-slash-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 hidden-view"><path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88" /></svg>
                     </button>
                 </div>
             </div>
@@ -78,17 +77,22 @@
     </main>
 
     <main id="dashboard-container" class="hidden-view glass-panel p-6 rounded-2xl w-full max-w-md mt-4 space-y-4 shadow-2xl shadow-yellow-900/20">
-        <div class="flex justify-between items-center border-b border-slate-700 pb-2">
+        <div class="flex justify-between items-center border-b border-slate-700 pb-2 mb-4">
             <h2 class="text-lg font-black text-yellow-500 tracking-wide" id="current-edition-title">Edition</h2>
             <button id="back-btn" class="text-xs text-slate-400 underline hover:text-white transition">Change Edition</button>
         </div>
 
-        <button type="button" id="open-view-teams-btn" class="w-full bg-slate-900 border-2 border-yellow-600 hover:bg-yellow-600 hover:text-slate-950 text-yellow-500 font-black py-3 rounded-lg active:scale-95 transition mb-4 uppercase tracking-wider">
-            View Uploaded Teams
-        </button>
+        <div class="grid grid-cols-2 gap-3 mb-4">
+            <button type="button" id="open-view-teams-btn" class="w-full bg-slate-900 border border-slate-600 hover:bg-slate-800 text-white font-bold py-3 rounded-lg active:scale-95 transition text-xs uppercase tracking-wider flex flex-col items-center justify-center gap-1 shadow-lg">
+                <span class="text-lg">📊</span> Live Leaderboard
+            </button>
+            <button type="button" id="open-voting-btn" class="w-full bg-gradient-to-br from-yellow-600 to-amber-800 border border-yellow-500/50 hover:from-yellow-500 hover:to-amber-700 text-white font-bold py-3 rounded-lg active:scale-95 transition text-xs uppercase tracking-wider flex flex-col items-center justify-center gap-1 shadow-lg shadow-yellow-900/30">
+                <span class="text-lg">🏆</span> Vote Phase
+            </button>
+        </div>
 
         <div id="submission-area" class="space-y-4 border-t border-slate-800 pt-4">
-            <h3 class="font-black text-white tracking-wide">SUBMIT YOUR ROSTER</h3>
+            <h3 class="font-black text-white tracking-wide uppercase">Submit Your Roster</h3>
 
             <div>
                 <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Franchise Name</label>
@@ -137,24 +141,45 @@
         </div>
     </main>
 
+    <main id="voting-container" class="hidden-view glass-panel p-6 rounded-2xl w-full max-w-md shadow-2xl shadow-yellow-900/20 flex flex-col items-center">
+        <div class="w-full flex justify-between items-start mb-4">
+            <div>
+                <h2 class="text-xl font-black text-yellow-500 tracking-wide flex items-center gap-2">🏆 VOTE PHASE</h2>
+                <p class="text-[10px] text-slate-300 font-bold uppercase tracking-wider mt-1" id="voter-status-text">MANAGER: DEVA (Self-Vote Disabled)</p>
+            </div>
+            <button id="close-voting-btn" class="text-xs font-bold bg-slate-800 border border-slate-700 px-3 py-1 rounded text-white hover:bg-slate-700">Back</button>
+        </div>
+
+        <div class="flex gap-2 w-full mb-6" id="voting-slots-container">
+            </div>
+
+        <div class="w-full border-t border-slate-800 pt-4">
+            <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest mb-3 text-center">Available Franchises</h3>
+            <div class="grid grid-cols-3 gap-2 max-h-[45vh] overflow-y-auto custom-scrollbar pr-1 pb-4" id="voting-grid">
+                </div>
+        </div>
+
+        <button type="button" id="submit-votes-btn" disabled class="w-full mt-4 bg-slate-800 text-slate-500 border border-slate-700 font-black py-3 rounded-lg uppercase tracking-widest transition duration-300">
+            Submit Rankings
+        </button>
+    </main>
+
     <main id="carousel-container-view" class="hidden-view w-full max-w-md mt-4 space-y-4">
         <div class="flex justify-between items-center mb-4 px-2">
-            <h2 class="text-lg font-black text-yellow-500 tracking-wide">SUBMITTED SQUADS</h2>
+            <h2 class="text-lg font-black text-yellow-500 tracking-wide flex items-center gap-2">📊 LIVE LEADERBOARD</h2>
             <button id="close-carousel-btn" class="text-xs font-bold bg-slate-800 border border-slate-700 px-3 py-1 rounded text-white hover:bg-slate-700">Back</button>
         </div>
 
         <div id="admin-nuke-panel" class="hidden-view px-2 mb-4">
             <button onclick="nukeEntireEdition()" class="w-full bg-transparent hover:bg-red-900/30 text-red-500 font-bold py-2 rounded-xl transition border border-red-900/50 uppercase text-[10px] tracking-widest flex items-center justify-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                </svg>
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
                 Nuke Entire Edition
             </button>
         </div>
 
-        <p id="loading-text" class="text-center text-yellow-500 text-sm py-10 font-semibold animate-pulse">Fetching from database...</p>
+        <p id="loading-text" class="text-center text-yellow-500 text-sm py-10 font-semibold animate-pulse">Calculating Results...</p>
 
-        <div id="carousel-track" class="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-6 hide-scrollbar px-2"></div>
+        <div id="carousel-track" class="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-6 pt-4 hide-scrollbar px-2"></div>
     </main>
 
     <div id="image-modal" class="fixed inset-0 bg-slate-950/95 hidden-view flex flex-col items-center justify-center z-50 p-4">
@@ -193,25 +218,36 @@
         const editionView = document.getElementById('edition-container');
         const dashboardView = document.getElementById('dashboard-container');
         const carouselView = document.getElementById('carousel-container-view');
+        const votingView = document.getElementById('voting-container');
         let selectedEdition = "";
         let isAdmin = false;
 
+        // Voting State Variables
+        let currentTeamsList = [];
+        let myVotes = { 1: null, 2: null, 3: null }; // 1=5pts, 2=3pts, 3=2pts
+        let myOwnTeamId = null; 
+
         // Franchise Color Helper Function
         const getTeamColor = (teamName) => {
-            if(!teamName) return '#FBBF24'; // Default Yellow
+            if(!teamName) return '#FBBF24'; 
             const team = teamName.toUpperCase();
-            if(team.includes('CSK')) return '#FBBF24'; // Amber/Yellow
-            if(team.includes('DC')) return '#38BDF8';  // Light Blue
-            if(team.includes('GT')) return '#14B8A6';  // Teal
-            if(team.includes('KKR')) return '#A855F7'; // Purple
-            if(team.includes('LSG')) return '#06B6D4'; // Cyan
-            if(team.includes('MI')) return '#2563EB';  // Blue
-            if(team.includes('PBKS')) return '#E11D48'; // Rose/Red
-            if(team.includes('RR')) return '#DB2777';  // Pink
-            if(team.includes('RCB')) return '#DC2626'; // Red
-            if(team.includes('SRH')) return '#F97316'; // Orange
+            if(team.includes('CSK')) return '#FBBF24'; 
+            if(team.includes('DC')) return '#38BDF8';  
+            if(team.includes('GT')) return '#14B8A6';  
+            if(team.includes('KKR')) return '#A855F7'; 
+            if(team.includes('LSG')) return '#06B6D4'; 
+            if(team.includes('MI')) return '#2563EB';  
+            if(team.includes('PBKS')) return '#E11D48'; 
+            if(team.includes('RR')) return '#DB2777';  
+            if(team.includes('RCB')) return '#DC2626'; 
+            if(team.includes('SRH')) return '#F97316'; 
             return '#FBBF24';
         };
+
+        const getTeamAcronym = (teamName) => {
+            const match = teamName.match(/\((.*?)\)/);
+            return match ? match[1] : teamName.substring(0,3).toUpperCase();
+        }
 
         // Generate Edition Buttons
         const grid = document.getElementById('edition-grid');
@@ -224,6 +260,7 @@
             editionView.classList.add('hidden-view');
             dashboardView.classList.add('hidden-view');
             carouselView.classList.add('hidden-view');
+            votingView.classList.add('hidden-view');
             view.classList.remove('hidden-view');
         }
 
@@ -302,10 +339,8 @@
                 }
 
                 const teamSelect = document.getElementById('team-name');
-                
                 const lockDoc = await getDoc(doc(db, "settings", "locks"));
                 const isLocked = lockDoc.exists() && lockDoc.data()[selectedEdition] === true;
-                
                 document.getElementById('toggle-lock-btn').innerText = isLocked ? "🔓 Unlock Edition" : "🔒 Lock Edition";
 
                 if(isLocked && !isAdmin) {
@@ -339,7 +374,6 @@
             const lockRef = doc(db, "settings", "locks");
             const lockDoc = await getDoc(lockRef);
             let isCurrentlyLocked = lockDoc.exists() && lockDoc.data()[selectedEdition] === true;
-            
             try {
                 await setDoc(lockRef, { [selectedEdition]: !isCurrentlyLocked }, { merge: true });
                 document.getElementById('toggle-lock-btn').innerText = !isCurrentlyLocked ? "🔓 Unlock Edition" : "🔒 Lock Edition";
@@ -358,10 +392,16 @@
         window.nukeEntireEdition = async () => {
             if(prompt(`Type "DELETE" to permanently wipe ${selectedEdition}`) !== "DELETE") return;
             try {
+                // Delete all teams
                 const q = query(collection(db, "teams"), where("edition", "==", selectedEdition));
                 const snapshot = await getDocs(q);
                 snapshot.forEach(async (docSnap) => await deleteDoc(doc(db, "teams", docSnap.id)));
-                alert("Edition nuked completely.");
+                // Delete all votes
+                const vQ = query(collection(db, "votes"), where("edition", "==", selectedEdition));
+                const vSnap = await getDocs(vQ);
+                vSnap.forEach(async (vDoc) => await deleteDoc(doc(db, "votes", vDoc.id)));
+
+                alert("Edition and all votes nuked completely.");
                 document.getElementById('open-view-teams-btn').click(); 
             } catch(e) { alert("Error nuking: " + e.message); }
         };
@@ -406,62 +446,282 @@
             finally { btn.innerText = "Submit Squad"; btn.disabled = false; }
         });
 
-        // --- NEW HYBRID CAROUSEL RENDERER ---
+        // ==========================================
+        // VOTING ENGINE CORE
+        // ==========================================
+
+        document.getElementById('open-voting-btn').addEventListener('click', async () => {
+            const btn = document.getElementById('open-voting-btn');
+            btn.innerHTML = `<span class="text-lg animate-spin">⏳</span> Loading...`;
+            
+            try {
+                const q = query(collection(db, "teams"), where("edition", "==", selectedEdition));
+                const snap = await getDocs(q);
+                
+                // 🛑 THE 10 TEAM GATEKEEPER
+                if (snap.size < 10) {
+                    alert(`Voting unlocks when exactly 10 teams are submitted! \nCurrently Uploaded: ${snap.size}/10`);
+                    btn.innerHTML = `<span class="text-lg">🏆</span> Vote Phase`;
+                    return;
+                }
+
+                currentTeamsList = [];
+                myOwnTeamId = null;
+
+                snap.forEach(docSnap => {
+                    const data = docSnap.data();
+                    currentTeamsList.push({ id: docSnap.id, ...data });
+                    // Identify the logged in user's team to block self-voting
+                    if (data.manager_email === auth.currentUser.email) {
+                        myOwnTeamId = docSnap.id;
+                    }
+                });
+
+                // Update Header
+                const myTeamName = myOwnTeamId ? currentTeamsList.find(t=>t.id===myOwnTeamId).team_name : "None";
+                document.getElementById('voter-status-text').innerHTML = `MANAGER: <span class="text-yellow-500">${auth.currentUser.displayName}</span> <br> (TEAM ${getTeamAcronym(myTeamName)} - Self-Vote Disabled)`;
+
+                // Fetch Existing Votes
+                const voteRef = doc(db, "votes", `${selectedEdition}_${auth.currentUser.email}`);
+                const voteDoc = await getDoc(voteRef);
+                if (voteDoc.exists()) {
+                    myVotes = voteDoc.data().votes; 
+                } else {
+                    myVotes = { 1: null, 2: null, 3: null };
+                }
+
+                renderVotingUI();
+                showView(votingView);
+
+            } catch(e) { alert("Error loading voting phase: " + e.message); }
+            btn.innerHTML = `<span class="text-lg">🏆</span> Vote Phase`;
+        });
+
+        document.getElementById('close-voting-btn').addEventListener('click', () => showView(dashboardView));
+
+        // Re-renders the slots and grid whenever a button is pressed
+        window.renderVotingUI = () => {
+            const slotsContainer = document.getElementById('voting-slots-container');
+            const gridContainer = document.getElementById('voting-grid');
+            const submitBtn = document.getElementById('submit-votes-btn');
+            
+            slotsContainer.innerHTML = '';
+            gridContainer.innerHTML = '';
+
+            // Check if ready to submit
+            const isReady = myVotes[1] && myVotes[2] && myVotes[3];
+            if(isReady) {
+                submitBtn.disabled = false;
+                submitBtn.className = "w-full mt-4 bg-gradient-to-r from-yellow-500 to-amber-600 hover:from-yellow-400 text-slate-950 font-black py-3 rounded-lg uppercase tracking-widest transition duration-300 shadow-lg shadow-yellow-900/30 active:scale-95";
+            } else {
+                submitBtn.disabled = true;
+                submitBtn.className = "w-full mt-4 bg-slate-800 text-slate-500 border border-slate-700 font-black py-3 rounded-lg uppercase tracking-widest transition duration-300 cursor-not-allowed";
+            }
+
+            // Render 3 Slots
+            [1, 2, 3].forEach(rank => {
+                const pts = rank === 1 ? '5pts' : rank === 2 ? '3pts' : '2pts';
+                const teamId = myVotes[rank];
+                
+                if (teamId) {
+                    const team = currentTeamsList.find(t => t.id === teamId);
+                    const color = getTeamColor(team.team_name);
+                    const acr = getTeamAcronym(team.team_name);
+                    slotsContainer.innerHTML += `
+                        <div class="flex-1 vote-slot filled rounded-xl flex flex-col items-center justify-center p-2 relative shadow-lg cursor-pointer" onclick="castVote(${rank}, null)" style="border-color: ${color};">
+                            <span class="absolute top-1 right-1 text-[8px] bg-slate-950 text-slate-400 px-1 rounded">✕</span>
+                            <div class="w-8 h-8 rounded-full mb-1 border border-slate-700 overflow-hidden bg-slate-900">
+                                <img src="${team.image_url}" class="w-full h-full object-cover">
+                            </div>
+                            <span class="text-[10px] font-black uppercase text-center" style="color: ${color}">${acr}</span>
+                            <span class="text-[8px] text-white font-bold bg-slate-800 px-2 py-0.5 rounded-full mt-1">#${rank}</span>
+                        </div>
+                    `;
+                } else {
+                    slotsContainer.innerHTML += `
+                        <div class="flex-1 vote-slot rounded-xl flex flex-col items-center justify-center py-4 text-slate-500">
+                            <span class="text-sm font-black mb-1">RANK #${rank}</span>
+                            <span class="text-[9px] uppercase tracking-widest">#${rank}=${pts}</span>
+                        </div>
+                    `;
+                }
+            });
+
+            // Render Grid
+            currentTeamsList.forEach(team => {
+                const isMyTeam = team.id === myOwnTeamId;
+                const acr = getTeamAcronym(team.team_name);
+                const color = getTeamColor(team.team_name);
+                
+                // Which rank did I give this team? (if any)
+                let givenRank = null;
+                if(myVotes[1] === team.id) givenRank = 1;
+                if(myVotes[2] === team.id) givenRank = 2;
+                if(myVotes[3] === team.id) givenRank = 3;
+
+                // Build buttons
+                let buttonsHTML = '';
+                if (isMyTeam) {
+                    buttonsHTML = `<div class="text-[8px] font-bold text-slate-400 bg-slate-800 rounded py-1 px-2 text-center w-full uppercase">Your Team</div>`;
+                } else {
+                    [1, 2, 3].forEach(r => {
+                        const isSelected = givenRank === r;
+                        const isDisabled = (givenRank !== null && givenRank !== r) || (givenRank === null && myVotes[r] !== null);
+                        
+                        let btnClass = isSelected 
+                            ? "bg-yellow-500 text-slate-950 border-yellow-400 scale-110" 
+                            : isDisabled 
+                                ? "bg-slate-800 text-slate-600 border-slate-700 opacity-50 cursor-not-allowed" 
+                                : "bg-slate-800 text-slate-300 hover:bg-slate-700 hover:border-slate-500 border-slate-600";
+
+                        buttonsHTML += `<button onclick="castVote(${r}, '${team.id}')" ${isDisabled ? 'disabled' : ''} class="w-6 h-6 rounded-full text-[10px] font-black border transition-all ${btnClass}">${r}</button>`;
+                    });
+                }
+
+                gridContainer.innerHTML += `
+                    <div class="bg-slate-900 border border-slate-700 rounded-xl overflow-hidden flex flex-col relative ${givenRank ? 'ring-2 ring-yellow-500' : ''}">
+                        <div class="h-10 w-full overflow-hidden relative">
+                            <div class="absolute inset-0 opacity-40" style="background-color: ${color}"></div>
+                            <img src="${team.image_url}" class="w-full h-full object-cover mix-blend-luminosity opacity-50">
+                            <div class="absolute inset-0 flex items-center justify-center">
+                                <span class="font-black text-xs text-white uppercase drop-shadow-md z-10">${acr}</span>
+                            </div>
+                        </div>
+                        <div class="p-2 flex flex-col items-center justify-between flex-1 bg-slate-900 gap-2">
+                            <span class="text-[8px] text-slate-400 uppercase text-center truncate w-full">${team.manager_name}</span>
+                            <div class="flex gap-1 justify-center w-full">
+                                ${buttonsHTML}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+        };
+
+        window.castVote = (rank, teamId) => {
+            // Toggle Logic: If clicked on an already selected rank, clear it.
+            if(myVotes[rank] === teamId) {
+                myVotes[rank] = null;
+            } else {
+                myVotes[rank] = teamId;
+            }
+            renderVotingUI();
+        }
+
+        document.getElementById('submit-votes-btn').addEventListener('click', async () => {
+            const btn = document.getElementById('submit-votes-btn');
+            btn.innerText = "SAVING...";
+            try {
+                const voteRef = doc(db, "votes", `${selectedEdition}_${auth.currentUser.email}`);
+                await setDoc(voteRef, {
+                    edition: selectedEdition,
+                    voter_email: auth.currentUser.email,
+                    voter_name: auth.currentUser.displayName,
+                    votes: myVotes,
+                    timestamp: serverTimestamp()
+                });
+                alert("Rankings locked in! Awesome strategy.");
+                showView(dashboardView);
+            } catch (e) { alert("Failed to save votes: " + e.message); }
+            btn.innerText = "Submit Rankings";
+        });
+
+        // ==========================================
+        // LIVE LEADERBOARD (RESULTS)
+        // ==========================================
+        
         document.getElementById('open-view-teams-btn').addEventListener('click', async () => {
             showView(carouselView);
             const track = document.getElementById('carousel-track');
             track.innerHTML = ''; document.getElementById('loading-text').classList.remove('hidden-view');
 
-            const q = query(collection(db, "teams"), where("edition", "==", selectedEdition));
-            const querySnapshot = await getDocs(q);
-            document.getElementById('loading-text').classList.add('hidden-view');
-
-            if (querySnapshot.empty) {
-                track.innerHTML = `<div class="w-full text-center text-slate-500 py-10 font-semibold">No teams submitted for this edition yet.</div>`;
-                return;
-            }
-
-            querySnapshot.forEach((docSnap) => {
-                const data = docSnap.data();
+            try {
+                // 1. Fetch Teams
+                const teamsSnap = await getDocs(query(collection(db, "teams"), where("edition", "==", selectedEdition)));
                 
-                const adminBtnHTML = isAdmin ? `
-                    <button onclick="deleteSquad('${docSnap.id}')" class="absolute top-4 right-4 bg-red-950/80 hover:bg-red-900 text-red-400 p-2 rounded-full shadow-lg transition backdrop-blur-md border border-red-900/50 z-10" title="Delete Squad">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
-                        </svg>
-                    </button>` : '';
+                // 2. Fetch All Votes for this edition
+                const votesSnap = await getDocs(query(collection(db, "votes"), where("edition", "==", selectedEdition)));
                 
-                // Fixed Layout with strict widths and jersey colors
-                track.innerHTML += `
-                    <div class="relative w-[85vw] max-w-[360px] flex-none snap-center bg-slate-900/40 backdrop-blur-xl border border-yellow-500/20 rounded-3xl flex flex-col shadow-2xl overflow-hidden group">
-                        ${adminBtnHTML}
-                        
-                        <div class="p-5 pb-3 border-b border-yellow-500/10 bg-slate-800/50 shrink-0">
-                            <h3 class="text-xl font-black uppercase tracking-wide pr-8 leading-tight break-words" style="color: ${getTeamColor(data.team_name)};">${data.team_name}</h3>
-                            <p class="text-[10px] text-slate-400 mt-1 uppercase tracking-wider">Manager: <span class="font-bold text-white">${data.manager_name}</span></p>
-                        </div>
-                        
-                        <div class="w-full h-60 shrink-0 cursor-pointer relative bg-slate-950" onclick="openModal('${data.image_url}')">
-                            <img src="${data.image_url}" class="absolute inset-0 w-full h-full object-cover opacity-90 group-hover:opacity-100 transition duration-300">
-                            <div class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition duration-300">
-                                <span class="text-slate-900 text-xs font-black bg-yellow-500 px-4 py-1.5 rounded-full uppercase tracking-widest shadow-lg">Tap to Expand</span>
+                document.getElementById('loading-text').classList.add('hidden-view');
+
+                if (teamsSnap.empty) {
+                    track.innerHTML = `<div class="w-full text-center text-slate-500 py-10 font-semibold">No teams submitted yet.</div>`;
+                    return;
+                }
+
+                // Initialize Scoreboard Dictionary
+                let scoreboard = {};
+                teamsSnap.forEach(docSnap => {
+                    const data = docSnap.data();
+                    scoreboard[docSnap.id] = { id: docSnap.id, ...data, pts: 0, r1: 0, r2: 0, r3: 0 };
+                });
+
+                // Crunch the Math
+                votesSnap.forEach(vDoc => {
+                    const votes = vDoc.data().votes;
+                    if(votes[1] && scoreboard[votes[1]]) { scoreboard[votes[1]].pts += 5; scoreboard[votes[1]].r1++; }
+                    if(votes[2] && scoreboard[votes[2]]) { scoreboard[votes[2]].pts += 3; scoreboard[votes[2]].r2++; }
+                    if(votes[3] && scoreboard[votes[3]]) { scoreboard[votes[3]].pts += 2; scoreboard[votes[3]].r3++; }
+                });
+
+                // Sort Array by Points Descending
+                const sortedTeams = Object.values(scoreboard).sort((a, b) => b.pts - a.pts);
+
+                sortedTeams.forEach((teamData, index) => {
+                    const adminBtnHTML = isAdmin ? `
+                        <button onclick="deleteSquad('${teamData.id}')" class="absolute top-4 right-4 bg-red-950/80 hover:bg-red-900 text-red-400 p-2 rounded-full shadow-lg transition backdrop-blur-md border border-red-900/50 z-30" title="Delete Squad">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" /></svg>
+                        </button>` : '';
+
+                    // The Premium Rank Shield
+                    const rankShield = `
+                        <div class="absolute -top-4 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center">
+                            <div class="bg-gradient-to-b from-yellow-300 to-yellow-600 text-slate-950 font-black px-6 py-1 rounded-t-lg shadow-lg text-sm border-2 border-b-0 border-yellow-200">
+                                RANK ${index + 1}
+                            </div>
+                            <div class="bg-slate-950 text-yellow-500 font-bold px-4 py-1 rounded-b-lg border-2 border-t-0 border-yellow-600 text-xs w-[110%] text-center shadow-xl">
+                                ${teamData.pts} PTS
                             </div>
                         </div>
-                        
-                        <div class="p-5 bg-slate-950/80 backdrop-blur-md flex-1 overflow-hidden flex flex-col">
-                            <h4 class="text-[10px] uppercase font-black text-yellow-600 mb-3 tracking-widest border-b border-slate-800/50 pb-1 flex items-center gap-2 shrink-0">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-3 h-3">
-                                    <path fill-rule="evenodd" d="M15 3.75a.75.75 0 01.75-.75h4.5a.75.75 0 01.75.75v4.5a.75.75 0 01-1.5 0V5.56l-3.97 3.97a.75.75 0 11-1.06-1.06l3.97-3.97h-2.69a.75.75 0 01-.75-.75z" clip-rule="evenodd" />
-                                    <path fill-rule="evenodd" d="M1.5 4.5a3 3 0 013-3h1.372c.86 0 1.61.586 1.819 1.42l1.105 4.423a1.875 1.875 0 01-.694 1.955l-1.293.97c-.135.101-.164.249-.126.352a11.285 11.285 0 006.697 6.697c.103.038.25.009.352-.126l.97-1.293a1.875 1.875 0 011.955-.694l4.423 1.105c.834.209 1.42.959 1.42 1.82V19.5a3 3 0 01-3 3h-2.25C8.552 22.5 1.5 15.448 1.5 6.75V4.5z" clip-rule="evenodd" />
-                                </svg>
-                                Playing 12
-                            </h4>
-                            <div class="flex-1 overflow-y-auto custom-scrollbar pr-2 min-h-[120px]">
-                                <p class="text-xs text-slate-300 font-mono whitespace-pre-wrap leading-relaxed">${data.playing_xi.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</p>
+                    `;
+                    
+                    track.innerHTML += `
+                        <div class="relative mt-4 w-[320px] max-w-[85vw] flex-none snap-center bg-slate-900/40 backdrop-blur-xl border border-yellow-500/20 rounded-3xl flex flex-col shadow-2xl overflow-hidden group">
+                            ${rankShield}
+                            ${adminBtnHTML}
+                            
+                            <div class="p-5 pt-8 pb-3 border-b border-yellow-500/10 bg-slate-800/50 shrink-0 min-w-0">
+                                <h3 class="text-xl font-black uppercase tracking-wide pr-8 leading-tight whitespace-normal break-words" style="color: ${getTeamColor(teamData.team_name)};">${teamData.team_name}</h3>
+                                <div class="flex justify-between items-end mt-1">
+                                    <p class="text-[10px] text-slate-400 uppercase tracking-wider truncate">Manager: <span class="font-bold text-white">${teamData.manager_name}</span></p>
+                                    
+                                    <div class="flex gap-1">
+                                        <span class="bg-slate-950 text-slate-300 text-[8px] font-bold px-1.5 py-0.5 rounded border border-slate-700" title="#1 Votes">#1: ${teamData.r1}</span>
+                                        <span class="bg-slate-950 text-slate-300 text-[8px] font-bold px-1.5 py-0.5 rounded border border-slate-700" title="#2 Votes">#2: ${teamData.r2}</span>
+                                        <span class="bg-slate-950 text-slate-300 text-[8px] font-bold px-1.5 py-0.5 rounded border border-slate-700" title="#3 Votes">#3: ${teamData.r3}</span>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                    </div>`;
-            });
+                            
+                            <div class="w-full h-56 shrink-0 cursor-pointer relative bg-slate-950 overflow-hidden" onclick="openModal('${teamData.image_url}')">
+                                <img src="${teamData.image_url}" class="absolute inset-0 w-full h-full object-cover opacity-90 group-hover:opacity-100 transition duration-300">
+                                <div class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition duration-300">
+                                    <span class="text-slate-900 text-xs font-black bg-yellow-500 px-4 py-1.5 rounded-full uppercase tracking-widest shadow-lg">Tap to Expand</span>
+                                </div>
+                            </div>
+                            
+                            <div class="p-5 bg-slate-950/80 backdrop-blur-md flex-1 overflow-hidden flex flex-col min-w-0">
+                                <h4 class="text-[10px] uppercase font-black text-yellow-600 mb-3 tracking-widest border-b border-slate-800/50 pb-1 flex items-center gap-2 shrink-0">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-3 h-3"><path fill-rule="evenodd" d="M15 3.75a.75.75 0 01.75-.75h4.5a.75.75 0 01.75.75v4.5a.75.75 0 01-1.5 0V5.56l-3.97 3.97a.75.75 0 11-1.06-1.06l3.97-3.97h-2.69a.75.75 0 01-.75-.75z" clip-rule="evenodd" /><path fill-rule="evenodd" d="M1.5 4.5a3 3 0 013-3h1.372c.86 0 1.61.586 1.819 1.42l1.105 4.423a1.875 1.875 0 01-.694 1.955l-1.293.97c-.135.101-.164.249-.126.352a11.285 11.285 0 006.697 6.697c.103.038.25.009.352-.126l.97-1.293a1.875 1.875 0 011.955-.694l4.423 1.105c.834.209 1.42.959 1.42 1.82V19.5a3 3 0 01-3 3h-2.25C8.552 22.5 1.5 15.448 1.5 6.75V4.5z" clip-rule="evenodd" /></svg>
+                                    Playing 12
+                                </h4>
+                                <div class="flex-1 overflow-y-auto custom-scrollbar pr-2 min-h-[120px]">
+                                    <p class="text-xs text-slate-300 font-mono whitespace-pre-wrap break-words leading-relaxed">${teamData.playing_xi.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</p>
+                                </div>
+                            </div>
+                        </div>`;
+                });
+            } catch(e) { console.error(e); alert("Failed to load leaderboard."); }
         });
 
         document.getElementById('close-carousel-btn').addEventListener('click', () => showView(dashboardView));
