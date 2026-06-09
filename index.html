@@ -89,10 +89,6 @@
 
         <div id="submission-area" class="space-y-4 border-t border-slate-800 pt-4">
             <h3 class="font-black text-white tracking-wide">SUBMIT YOUR ROSTER</h3>
-            
-            <p id="assignment-alert" class="hidden-view text-xs font-bold text-red-400 bg-red-900/20 p-2 rounded border border-red-800/50">
-                You have not been assigned a team by the Admin yet.
-            </p>
 
             <div>
                 <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Franchise Name</label>
@@ -132,25 +128,6 @@
             <button type="button" id="toggle-lock-btn" class="w-full bg-slate-900 border border-red-900 text-red-500 font-bold py-2 rounded-lg hover:bg-red-900/30 transition text-xs uppercase">
                 Lock This Edition
             </button>
-
-            <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-3 mt-2">
-                <h4 class="text-xs font-bold text-slate-400 uppercase">Assign Team to Manager</h4>
-                <input type="email" id="assign-email" placeholder="Manager's Email Address" class="w-full p-2 rounded-lg bg-slate-900 border border-slate-700 text-white text-sm">
-                <select id="assign-team-name" class="w-full p-2 rounded-lg bg-slate-900 border border-slate-700 text-white text-sm">
-                    <option value="" disabled selected>Select Team to Assign...</option>
-                    <option value="Chennai Super Kings (CSK)">Chennai Super Kings (CSK)</option>
-                    <option value="Delhi Capitals (DC)">Delhi Capitals (DC)</option>
-                    <option value="Gujarat Titans (GT)">Gujarat Titans (GT)</option>
-                    <option value="Kolkata Knight Riders (KKR)">Kolkata Knight Riders (KKR)</option>
-                    <option value="Lucknow Super Giants (LSG)">Lucknow Super Giants (LSG)</option>
-                    <option value="Mumbai Indians (MI)">Mumbai Indians (MI)</option>
-                    <option value="Punjab Kings (PBKS)">Punjab Kings (PBKS)</option>
-                    <option value="Rajasthan Royals (RR)">Rajasthan Royals (RR)</option>
-                    <option value="Royal Challengers Bengaluru (RCB)">Royal Challengers Bengaluru (RCB)</option>
-                    <option value="Sunrisers Hyderabad (SRH)">Sunrisers Hyderabad (SRH)</option>
-                </select>
-                <button type="button" id="assign-btn" class="w-full bg-slate-800 text-yellow-500 hover:bg-slate-700 font-bold py-2 rounded-lg transition text-xs border border-yellow-900/50">Assign Franchise</button>
-            </div>
 
             <div class="bg-slate-950 p-4 rounded-xl border border-red-900/40 space-y-3 mt-2">
                 <h4 class="text-xs font-bold text-red-500 uppercase">Revoke Access (Ban User)</h4>
@@ -295,7 +272,6 @@
                 selectedEdition = e.target.getAttribute('data-edition');
                 document.getElementById('current-edition-title').innerText = selectedEdition;
                 
-                // FIXED THE ADMIN PANEL VISIBILITY LOGIC HERE:
                 if (isAdmin) {
                     document.getElementById('admin-dashboard-panel').classList.remove('hidden-view');
                     document.getElementById('admin-nuke-panel').classList.remove('hidden-view');
@@ -305,7 +281,6 @@
                 }
 
                 const teamSelect = document.getElementById('team-name');
-                const alertBox = document.getElementById('assignment-alert');
                 
                 const lockDoc = await getDoc(doc(db, "settings", "locks"));
                 const isLocked = lockDoc.exists() && lockDoc.data()[selectedEdition] === true;
@@ -317,25 +292,10 @@
                     alert("This edition has been locked by the Admin.");
                 } else {
                     document.getElementById('submission-area').style.display = 'block';
-                    
-                    if(!isAdmin) {
-                        const assignDoc = await getDoc(doc(db, "assignments", auth.currentUser.email));
-                        Array.from(teamSelect.options).forEach(opt => opt.disabled = true);
-                        
-                        if(assignDoc.exists()) {
-                            const assignedTeam = assignDoc.data().team;
-                            alertBox.classList.add('hidden-view');
-                            teamSelect.value = assignedTeam;
-                            Array.from(teamSelect.options).forEach(opt => {
-                                if(opt.value === assignedTeam) opt.disabled = false;
-                            });
-                        } else {
-                            alertBox.classList.remove('hidden-view');
-                            teamSelect.value = "";
-                        }
-                    } else {
-                        Array.from(teamSelect.options).forEach(opt => opt.disabled = false);
-                    }
+                    // Reset dropdown and allow anyone to pick any team
+                    teamSelect.value = "";
+                    Array.from(teamSelect.options).forEach(opt => opt.disabled = false);
+                    teamSelect.options[0].disabled = true; // Keep the placeholder disabled
                 }
                 showView(dashboardView);
             });
@@ -344,17 +304,6 @@
         document.getElementById('back-btn').addEventListener('click', () => showView(editionView));
 
         // --- ADMIN FUNCTIONS ---
-        document.getElementById('assign-btn').addEventListener('click', async () => {
-            const userEmail = document.getElementById('assign-email').value.trim();
-            const team = document.getElementById('assign-team-name').value;
-            if(!userEmail || !team) return alert("Fill out both email and team to assign!");
-            try {
-                await setDoc(doc(db, "assignments", userEmail), { team: team });
-                alert(`Assigned ${team} to ${userEmail}!`);
-                document.getElementById('assign-email').value = '';
-            } catch(e) { alert("Error assigning team: " + e.message); }
-        });
-
         // Admin Deactivate Function
         document.getElementById('deactivate-btn').addEventListener('click', async () => {
             const emailToBan = document.getElementById('deactivate-email').value.trim();
@@ -477,3 +426,5 @@
     </script>
 </body>
 </html>
+
+    
