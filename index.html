@@ -138,18 +138,23 @@
     </main>
 
     <main id="carousel-container-view" class="hidden-view w-full max-w-md mt-4 space-y-4">
-        <div class="flex justify-between items-center mb-2 px-2">
+        <div class="flex justify-between items-center mb-4 px-2">
             <h2 class="text-lg font-black text-yellow-500 tracking-wide">SUBMITTED SQUADS</h2>
             <button id="close-carousel-btn" class="text-xs font-bold bg-slate-800 border border-slate-700 px-3 py-1 rounded text-white hover:bg-slate-700">Back</button>
         </div>
 
-        <div id="admin-nuke-panel" class="hidden-view px-2 mb-2">
-            <button onclick="nukeEntireEdition()" class="w-full bg-red-900/80 hover:bg-red-800 text-white font-black py-2 rounded-lg transition border border-red-600 uppercase text-xs tracking-widest shadow-lg shadow-red-900/30">⚠️ Nuke Entire Edition</button>
+        <div id="admin-nuke-panel" class="hidden-view px-2 mb-4">
+            <button onclick="nukeEntireEdition()" class="w-full bg-transparent hover:bg-red-900/30 text-red-500 font-bold py-2 rounded-xl transition border border-red-900/50 uppercase text-[10px] tracking-widest flex items-center justify-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                Nuke Entire Edition
+            </button>
         </div>
 
         <p id="loading-text" class="text-center text-yellow-500 text-sm py-10 font-semibold animate-pulse">Fetching from database...</p>
 
-        <div id="carousel-track" class="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-6 hide-scrollbar"></div>
+        <div id="carousel-track" class="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-6 hide-scrollbar px-2"></div>
     </main>
 
     <div id="image-modal" class="fixed inset-0 bg-slate-950/95 hidden-view flex flex-col items-center justify-center z-50 p-4">
@@ -245,7 +250,6 @@
             if (user) {
                 isAdmin = (user.email === ADMIN_EMAIL);
 
-                // --- CHECK DEACTIVATION BAN LIST ---
                 if (!isAdmin) {
                     try {
                         const banDoc = await getDoc(doc(db, "settings", "banned_users"));
@@ -292,10 +296,7 @@
                     alert("This edition has been locked by the Admin.");
                 } else {
                     document.getElementById('submission-area').style.display = 'block';
-                    // Reset dropdown and allow anyone to pick any team
                     teamSelect.value = "";
-                    Array.from(teamSelect.options).forEach(opt => opt.disabled = false);
-                    teamSelect.options[0].disabled = true; // Keep the placeholder disabled
                 }
                 showView(dashboardView);
             });
@@ -304,12 +305,10 @@
         document.getElementById('back-btn').addEventListener('click', () => showView(editionView));
 
         // --- ADMIN FUNCTIONS ---
-        // Admin Deactivate Function
         document.getElementById('deactivate-btn').addEventListener('click', async () => {
             const emailToBan = document.getElementById('deactivate-email').value.trim();
             if(!emailToBan) return alert("Please enter an email address to deactivate.");
             if(emailToBan === ADMIN_EMAIL) return alert("You cannot deactivate the Admin account!");
-            
             if(!confirm(`Are you sure you want to revoke access for ${emailToBan}? They will not be able to log in.`)) return;
 
             try {
@@ -383,13 +382,14 @@
                     timestamp: serverTimestamp()
                 });
                 alert("Squad successfully submitted!");
+                document.getElementById('team-name').value = '';
                 document.getElementById('playing-xi').value = '';
                 document.getElementById('squad-image').value = '';
             } catch (error) { alert("Error: " + error.message); } 
             finally { btn.innerText = "Submit Squad"; btn.disabled = false; }
         });
 
-        // --- CAROUSEL RENDERER ---
+        // --- NEW HYBRID CAROUSEL RENDERER ---
         document.getElementById('open-view-teams-btn').addEventListener('click', async () => {
             showView(carouselView);
             const track = document.getElementById('carousel-track');
@@ -399,23 +399,50 @@
             const querySnapshot = await getDocs(q);
             document.getElementById('loading-text').classList.add('hidden-view');
 
+            if (querySnapshot.empty) {
+                track.innerHTML = `<div class="w-full text-center text-slate-500 py-10 font-semibold">No teams submitted for this edition yet.</div>`;
+                return;
+            }
+
             querySnapshot.forEach((docSnap) => {
                 const data = docSnap.data();
-                const adminBtnHTML = isAdmin ? `<button onclick="deleteSquad('${docSnap.id}')" class="mt-3 w-full bg-red-900/40 hover:bg-red-900 text-red-400 font-bold py-1.5 rounded text-[10px] uppercase border border-red-900/50 transition">🗑️ Delete Squad</button>` : '';
+                
+                // Small Trash Icon instead of massive block button
+                const adminBtnHTML = isAdmin ? `
+                    <button onclick="deleteSquad('${docSnap.id}')" class="absolute top-4 right-4 bg-red-950/80 hover:bg-red-900 text-red-400 p-2 rounded-full shadow-lg transition backdrop-blur-md border border-red-900/50 z-10" title="Delete Squad">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+                        </svg>
+                    </button>` : '';
                 
                 track.innerHTML += `
-                    <div class="min-w-[90%] md:min-w-[400px] snap-center bg-slate-900/90 p-5 rounded-2xl border border-yellow-900/50 flex flex-col shrink-0">
-                        <h3 class="text-xl font-black text-center mb-4 text-yellow-500 uppercase">${data.team_name}</h3>
-                        <div class="grid grid-cols-2 gap-4 flex-1">
-                            <div class="cursor-pointer border-2 border-slate-700 h-40 rounded-xl overflow-hidden" onclick="openModal('${data.image_url}')">
-                                <img src="${data.image_url}" class="w-full h-full object-cover">
-                            </div>
-                            <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 overflow-y-auto h-40 custom-scrollbar">
-                                <p class="text-xs text-slate-300 font-mono whitespace-pre-wrap">${data.playing_xi.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</p>
+                    <div class="relative min-w-[90%] md:min-w-[360px] snap-center bg-slate-900/40 backdrop-blur-xl border border-yellow-500/20 rounded-3xl flex flex-col shrink-0 shadow-2xl overflow-hidden group">
+                        ${adminBtnHTML}
+                        
+                        <div class="p-5 pb-3 border-b border-yellow-500/10 bg-gradient-to-b from-slate-800/50 to-transparent">
+                            <h3 class="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-yellow-600 uppercase tracking-wide pr-8 leading-tight">${data.team_name}</h3>
+                            <p class="text-[10px] text-slate-400 mt-1 uppercase tracking-wider">Manager: <span class="font-bold text-white">${data.manager_name}</span></p>
+                        </div>
+                        
+                        <div class="w-full h-56 cursor-pointer relative bg-slate-950" onclick="openModal('${data.image_url}')">
+                            <img src="${data.image_url}" class="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition duration-300">
+                            <div class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition duration-300">
+                                <span class="text-slate-900 text-xs font-black bg-yellow-500 px-4 py-1.5 rounded-full uppercase tracking-widest shadow-lg">Tap to Expand</span>
                             </div>
                         </div>
-                        <p class="text-center text-[10px] text-slate-500 mt-4 uppercase">Manager: <span class="font-bold text-yellow-500">${data.manager_name}</span></p>
-                        ${adminBtnHTML}
+                        
+                        <div class="p-5 bg-slate-950/80 backdrop-blur-md flex-1">
+                            <h4 class="text-[10px] uppercase font-black text-yellow-600 mb-3 tracking-widest border-b border-slate-800/50 pb-1 flex items-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-3 h-3">
+                                    <path fill-rule="evenodd" d="M15 3.75a.75.75 0 01.75-.75h4.5a.75.75 0 01.75.75v4.5a.75.75 0 01-1.5 0V5.56l-3.97 3.97a.75.75 0 11-1.06-1.06l3.97-3.97h-2.69a.75.75 0 01-.75-.75z" clip-rule="evenodd" />
+                                    <path fill-rule="evenodd" d="M1.5 4.5a3 3 0 013-3h1.372c.86 0 1.61.586 1.819 1.42l1.105 4.423a1.875 1.875 0 01-.694 1.955l-1.293.97c-.135.101-.164.249-.126.352a11.285 11.285 0 006.697 6.697c.103.038.25.009.352-.126l.97-1.293a1.875 1.875 0 011.955-.694l4.423 1.105c.834.209 1.42.959 1.42 1.82V19.5a3 3 0 01-3 3h-2.25C8.552 22.5 1.5 15.448 1.5 6.75V4.5z" clip-rule="evenodd" />
+                                </svg>
+                                Playing 12
+                            </h4>
+                            <div class="h-32 overflow-y-auto custom-scrollbar pr-2">
+                                <p class="text-xs text-slate-300 font-mono whitespace-pre-wrap leading-relaxed">${data.playing_xi.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</p>
+                            </div>
+                        </div>
                     </div>`;
             });
         });
@@ -426,5 +453,3 @@
     </script>
 </body>
 </html>
-
-    
