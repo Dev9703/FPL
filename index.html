@@ -158,8 +158,8 @@
     </main>
 
     <div id="image-modal" class="fixed inset-0 bg-slate-950/95 hidden-view flex flex-col items-center justify-center z-50 p-4">
-        <button onclick="closeModal()" class="absolute top-6 right-6 text-white bg-red-900 hover:bg-red-800 rounded-full w-10 h-10 flex items-center justify-center font-bold text-xl">✕</button>
-        <img id="modal-img" class="max-w-full max-h-[85vh] object-contain rounded-xl border border-yellow-600/30">
+        <button onclick="closeModal()" class="absolute top-6 right-6 text-white bg-red-900 hover:bg-red-800 rounded-full w-10 h-10 flex items-center justify-center font-bold text-xl shadow-lg border border-red-700">✕</button>
+        <img id="modal-img" class="max-w-full max-h-[85vh] object-contain rounded-xl shadow-2xl border border-yellow-600/30">
     </div>
 
     <script type="module">
@@ -195,6 +195,23 @@
         const carouselView = document.getElementById('carousel-container-view');
         let selectedEdition = "";
         let isAdmin = false;
+
+        // Franchise Color Helper Function
+        const getTeamColor = (teamName) => {
+            if(!teamName) return '#FBBF24'; // Default Yellow
+            const team = teamName.toUpperCase();
+            if(team.includes('CSK')) return '#FBBF24'; // Amber/Yellow
+            if(team.includes('DC')) return '#38BDF8';  // Light Blue
+            if(team.includes('GT')) return '#14B8A6';  // Teal
+            if(team.includes('KKR')) return '#A855F7'; // Purple
+            if(team.includes('LSG')) return '#06B6D4'; // Cyan
+            if(team.includes('MI')) return '#2563EB';  // Blue
+            if(team.includes('PBKS')) return '#E11D48'; // Rose/Red
+            if(team.includes('RR')) return '#DB2777';  // Pink
+            if(team.includes('RCB')) return '#DC2626'; // Red
+            if(team.includes('SRH')) return '#F97316'; // Orange
+            return '#FBBF24';
+        };
 
         // Generate Edition Buttons
         const grid = document.getElementById('edition-grid');
@@ -407,7 +424,6 @@
             querySnapshot.forEach((docSnap) => {
                 const data = docSnap.data();
                 
-                // Small Trash Icon instead of massive block button
                 const adminBtnHTML = isAdmin ? `
                     <button onclick="deleteSquad('${docSnap.id}')" class="absolute top-4 right-4 bg-red-950/80 hover:bg-red-900 text-red-400 p-2 rounded-full shadow-lg transition backdrop-blur-md border border-red-900/50 z-10" title="Delete Squad">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
@@ -415,31 +431,32 @@
                         </svg>
                     </button>` : '';
                 
+                // Fixed Layout with strict widths and jersey colors
                 track.innerHTML += `
-                    <div class="relative min-w-[90%] md:min-w-[360px] snap-center bg-slate-900/40 backdrop-blur-xl border border-yellow-500/20 rounded-3xl flex flex-col shrink-0 shadow-2xl overflow-hidden group">
+                    <div class="relative w-[85vw] max-w-[360px] flex-none snap-center bg-slate-900/40 backdrop-blur-xl border border-yellow-500/20 rounded-3xl flex flex-col shadow-2xl overflow-hidden group">
                         ${adminBtnHTML}
                         
-                        <div class="p-5 pb-3 border-b border-yellow-500/10 bg-gradient-to-b from-slate-800/50 to-transparent">
-                            <h3 class="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-yellow-600 uppercase tracking-wide pr-8 leading-tight">${data.team_name}</h3>
+                        <div class="p-5 pb-3 border-b border-yellow-500/10 bg-slate-800/50 shrink-0">
+                            <h3 class="text-xl font-black uppercase tracking-wide pr-8 leading-tight break-words" style="color: ${getTeamColor(data.team_name)};">${data.team_name}</h3>
                             <p class="text-[10px] text-slate-400 mt-1 uppercase tracking-wider">Manager: <span class="font-bold text-white">${data.manager_name}</span></p>
                         </div>
                         
-                        <div class="w-full h-56 cursor-pointer relative bg-slate-950" onclick="openModal('${data.image_url}')">
-                            <img src="${data.image_url}" class="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition duration-300">
+                        <div class="w-full h-60 shrink-0 cursor-pointer relative bg-slate-950" onclick="openModal('${data.image_url}')">
+                            <img src="${data.image_url}" class="absolute inset-0 w-full h-full object-cover opacity-90 group-hover:opacity-100 transition duration-300">
                             <div class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition duration-300">
                                 <span class="text-slate-900 text-xs font-black bg-yellow-500 px-4 py-1.5 rounded-full uppercase tracking-widest shadow-lg">Tap to Expand</span>
                             </div>
                         </div>
                         
-                        <div class="p-5 bg-slate-950/80 backdrop-blur-md flex-1">
-                            <h4 class="text-[10px] uppercase font-black text-yellow-600 mb-3 tracking-widest border-b border-slate-800/50 pb-1 flex items-center gap-2">
+                        <div class="p-5 bg-slate-950/80 backdrop-blur-md flex-1 overflow-hidden flex flex-col">
+                            <h4 class="text-[10px] uppercase font-black text-yellow-600 mb-3 tracking-widest border-b border-slate-800/50 pb-1 flex items-center gap-2 shrink-0">
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-3 h-3">
                                     <path fill-rule="evenodd" d="M15 3.75a.75.75 0 01.75-.75h4.5a.75.75 0 01.75.75v4.5a.75.75 0 01-1.5 0V5.56l-3.97 3.97a.75.75 0 11-1.06-1.06l3.97-3.97h-2.69a.75.75 0 01-.75-.75z" clip-rule="evenodd" />
                                     <path fill-rule="evenodd" d="M1.5 4.5a3 3 0 013-3h1.372c.86 0 1.61.586 1.819 1.42l1.105 4.423a1.875 1.875 0 01-.694 1.955l-1.293.97c-.135.101-.164.249-.126.352a11.285 11.285 0 006.697 6.697c.103.038.25.009.352-.126l.97-1.293a1.875 1.875 0 011.955-.694l4.423 1.105c.834.209 1.42.959 1.42 1.82V19.5a3 3 0 01-3 3h-2.25C8.552 22.5 1.5 15.448 1.5 6.75V4.5z" clip-rule="evenodd" />
                                 </svg>
                                 Playing 12
                             </h4>
-                            <div class="h-32 overflow-y-auto custom-scrollbar pr-2">
+                            <div class="flex-1 overflow-y-auto custom-scrollbar pr-2 min-h-[120px]">
                                 <p class="text-xs text-slate-300 font-mono whitespace-pre-wrap leading-relaxed">${data.playing_xi.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</p>
                             </div>
                         </div>
