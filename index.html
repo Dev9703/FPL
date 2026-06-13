@@ -36,12 +36,12 @@
 </head>
 <body class="min-h-screen p-4 flex flex-col items-center pb-12 relative overflow-x-hidden">
 
-    <header class="w-full max-w-md mt-4 mb-6 relative">
-        <div class="text-center">
-            <h1 class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-yellow-500 to-amber-600 tracking-tight uppercase">FPL Auction</h1>
-            <p class="text-slate-400 text-sm mt-1 font-semibold tracking-widest uppercase" id="header-status">Login to manage your squad</p>
+    <header class="w-full max-w-md mt-2 mb-6 flex justify-between items-start px-1">
+        <div class="text-left flex-1">
+            <h1 class="text-3xl sm:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-yellow-500 to-amber-600 tracking-tight uppercase leading-none">FPL Auction</h1>
+            <p class="text-slate-400 text-[10px] sm:text-xs mt-1.5 font-semibold tracking-widest uppercase" id="header-status">Login to manage your squad</p>
         </div>
-        <button id="menu-toggle-btn" class="hidden-view absolute top-0 right-0 bg-slate-900 border border-slate-700 hover:border-yellow-500 text-slate-300 px-4 py-2 rounded-full font-bold text-xs flex items-center gap-2 transition z-40">
+        <button id="menu-toggle-btn" class="hidden-view bg-slate-900 border border-slate-700 hover:border-yellow-500 text-slate-300 px-3 py-2 rounded-full font-bold text-xs flex items-center gap-2 transition shrink-0 z-40">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" /></svg>
             Menu
         </button>
@@ -120,14 +120,16 @@
         <div id="submission-area" class="space-y-4 border-t border-slate-800 pt-4">
             <h3 class="font-black text-white tracking-wide uppercase">Submit Your Roster</h3>
             
-            <!-- NEW: Proxy Team Upload Panel for Admins -->
+            <!-- UPGRADED: Proxy Team Upload Panel with Dropdown -->
             <div id="admin-upload-proxy" class="hidden-view bg-slate-950 p-3 rounded-lg border border-red-900/50 mb-3 space-y-2 shadow-inner">
-                <h4 class="text-[10px] font-black text-red-500 uppercase tracking-widest flex items-center gap-1"><span>🛡️</span> Proxy Team Upload</h4>
-                <div class="flex gap-2">
-                    <input type="text" id="proxy-upload-name" placeholder="Manager's Name" class="flex-1 w-full p-2 rounded-lg bg-slate-900 border border-slate-700 text-white text-xs outline-none focus:border-red-500">
-                    <input type="email" id="proxy-upload-email" placeholder="Manager's Email" class="flex-1 w-full p-2 rounded-lg bg-slate-900 border border-slate-700 text-white text-xs outline-none focus:border-red-500">
-                </div>
-                <p class="text-[8px] text-slate-500 uppercase font-bold tracking-widest">Leave blank to submit as yourself.</p>
+                <h4 class="text-[10px] font-black text-red-500 uppercase tracking-widest flex items-center justify-between">
+                    <span class="flex items-center gap-1">🛡️ Proxy Team Upload</span>
+                    <button type="button" onclick="loadProxyUploadDropdown()" title="Refresh List" class="text-slate-400 hover:text-white">🔄</button>
+                </h4>
+                <select id="proxy-upload-select" class="w-full p-2 rounded-lg bg-slate-900 border border-slate-700 text-white text-xs outline-none focus:border-red-500 custom-scrollbar">
+                    <option value="">Submit as Myself (Admin)</option>
+                </select>
+                <p class="text-[8px] text-slate-500 uppercase font-bold tracking-widest">Select a manager or leave blank to submit as yourself.</p>
             </div>
 
             <div>
@@ -263,11 +265,19 @@
             else { document.getElementById('eye-icon').classList.remove('hidden-view'); document.getElementById('eye-slash-icon').classList.add('hidden-view'); }
         });
 
-        document.getElementById('register-btn').addEventListener('click', () => {
+        // Registration intercept to save users globally for the proxy dropdown
+        document.getElementById('register-btn').addEventListener('click', async () => {
             const e = document.getElementById('email').value.trim(); const p = document.getElementById('password').value; const u = document.getElementById('username').value.trim();
             if(!u) return alert("Please enter a Username.");
-            createUserWithEmailAndPassword(auth, e, p).then(user => updateProfile(user.user, { displayName: u })).catch(err => alert(err.message));
+            try {
+                const userCredential = await createUserWithEmailAndPassword(auth, e, p);
+                await updateProfile(userCredential.user, { displayName: u });
+                // Push to centralized users collection
+                await setDoc(doc(db, "users", e), { email: e, name: u });
+                alert("Registered successfully!");
+            } catch(err) { alert(err.message); }
         });
+        
         document.getElementById('login-btn').addEventListener('click', () => { signInWithEmailAndPassword(auth, document.getElementById('email').value.trim(), document.getElementById('password').value).catch(() => alert("Invalid login.")); });
         document.getElementById('logout-btn').addEventListener('click', () => { closeMenu(); signOut(auth); });
 
@@ -284,6 +294,33 @@
             }
         });
 
+        // Populates Proxy Upload Dropdown
+        window.loadProxyUploadDropdown = async () => {
+            if(!isAdmin) return;
+            const select = document.getElementById('proxy-upload-select');
+            select.innerHTML = '<option value="">Loading Managers...</option>';
+            try {
+                const uniqueUsers = {};
+                // Scan globally submitted teams
+                const teamsSnap = await getDocs(collection(db, "teams"));
+                teamsSnap.forEach(d => { if(d.data().manager_email) uniqueUsers[d.data().manager_email] = d.data().manager_name; });
+                
+                // Scan newly registered users 
+                try {
+                    const usersSnap = await getDocs(collection(db, "users"));
+                    usersSnap.forEach(d => { if(d.data().email) uniqueUsers[d.data().email] = d.data().name; });
+                } catch(e) {} // Handle cases where collection is missing
+                
+                select.innerHTML = '<option value="">Submit as Myself (Admin)</option>';
+                Object.entries(uniqueUsers).forEach(([email, name]) => {
+                    if(email !== ADMIN_EMAIL) {
+                        select.innerHTML += `<option value="${email}|${name}">${name} (${email})</option>`;
+                    }
+                });
+            } catch(e) { select.innerHTML = '<option value="">Error Loading</option>'; }
+        };
+
+        // Populates Proxy Voting Dropdown
         window.loadProxyDropdown = async () => {
             if(!isAdmin || !selectedEdition) return;
             const proxySelect = document.getElementById('proxy-voter-select');
@@ -309,6 +346,7 @@
                     document.getElementById('admin-nuke-panel').classList.remove('hidden-view');
                     document.getElementById('admin-upload-proxy').classList.remove('hidden-view'); 
                     loadProxyDropdown();
+                    loadProxyUploadDropdown();
                 } else { 
                     document.getElementById('admin-dashboard-panel').classList.add('hidden-view'); 
                     document.getElementById('admin-nuke-panel').classList.add('hidden-view');
@@ -345,7 +383,7 @@
             alert("Nuked completely."); document.getElementById('open-view-teams-btn').click(); 
         };
 
-        // Modified Submission Logic to handle Proxy Uploads
+        // Submission Logic mapping to dropdown
         document.getElementById('submit-squad-btn').addEventListener('click', async () => {
             const teamName = document.getElementById('team-name').value; 
             const xi = document.getElementById('playing-xi').value; 
@@ -354,18 +392,15 @@
             
             if(!teamName || !xi) return alert("Fill Franchise and Playing 12!");
             
-            // Check for Proxy Credentials
             let finalEmail = auth.currentUser.email;
             let finalName = auth.currentUser.displayName || "Unknown";
 
             if (isAdmin) {
-                const pName = document.getElementById('proxy-upload-name').value.trim();
-                const pEmail = document.getElementById('proxy-upload-email').value.trim();
-                if (pName && pEmail) {
-                    finalName = pName;
+                const proxyVal = document.getElementById('proxy-upload-select').value;
+                if (proxyVal) {
+                    const [pEmail, pName] = proxyVal.split('|');
                     finalEmail = pEmail;
-                } else if (pName || pEmail) {
-                    return alert("Proxy Upload Error: Please fill in BOTH the Manager's Name and Email, or leave both blank to submit as yourself.");
+                    finalName = pName;
                 }
             }
 
@@ -395,8 +430,7 @@
                 document.getElementById('squad-image').value='';
                 
                 if(isAdmin) {
-                    document.getElementById('proxy-upload-name').value='';
-                    document.getElementById('proxy-upload-email').value='';
+                    document.getElementById('proxy-upload-select').value = '';
                     loadProxyDropdown(); // Instantly update the proxy voting dropdown!
                 }
             } catch (e) { alert("Error: " + e.message); } finally { btn.innerText = "Submit Squad"; btn.disabled = false; }
