@@ -153,7 +153,8 @@
 
     <main id="carousel-container-view" class="hidden-view w-full max-w-md mt-4 space-y-4">
         <div class="flex justify-between items-center mb-4 px-2">
-            <h2 class="text-lg font-black text-yellow-500 tracking-wide flex items-center gap-2">📊 LIVE LEADERBOARD</h2>
+            <!-- Added ID here to dynamically update the title -->
+            <h2 id="leaderboard-title" class="text-lg font-black text-yellow-500 tracking-wide flex items-center gap-2">📊 LIVE LEADERBOARD</h2>
             <button onclick="navigateTo('dashboard-container')" class="text-xs font-bold bg-slate-800 border border-slate-700 px-3 py-1 rounded text-white">Back</button>
         </div>
         <div id="admin-nuke-panel" class="hidden-view px-2 mb-4"><button onclick="nukeEntireEdition()" class="w-full bg-transparent hover:bg-red-900/30 text-red-500 font-bold py-2 rounded-xl transition border border-red-900/50 uppercase text-[10px] tracking-widest flex items-center justify-center gap-2">⚠️ Nuke Entire Edition</button></div>
@@ -266,9 +267,13 @@
             const e = document.getElementById('deactivate-email').value.trim(); if(e === ADMIN_EMAIL) return alert("Cannot ban Admin!"); if(!confirm(`Ban ${e}?`)) return;
             await setDoc(doc(db, "settings", "banned_users"), { [e]: true }, { merge: true }); alert(`Banned ${e}`); document.getElementById('deactivate-email').value = '';
         });
+        
+        // Updated Lock button logic to announce results
         document.getElementById('toggle-lock-btn').addEventListener('click', async () => {
             const ref = doc(db, "settings", "locks"); const docSnap = await getDoc(ref); let locked = docSnap.exists() && docSnap.data()[selectedEdition] === true;
-            await setDoc(ref, { [selectedEdition]: !locked }, { merge: true }); document.getElementById('toggle-lock-btn').innerText = !locked ? "🔓 Unlock Edition" : "🔒 Lock Edition"; alert(`Edition ${!locked ? 'Locked' : 'Unlocked'}`);
+            await setDoc(ref, { [selectedEdition]: !locked }, { merge: true }); 
+            document.getElementById('toggle-lock-btn').innerText = !locked ? "🔓 Unlock Edition" : "🔒 Lock Edition"; 
+            alert(`Edition ${!locked ? 'Locked: Voting is closed and Final Results are announced!' : 'Unlocked: Submissions and Voting are live again.'}`);
         });
 
         window.deleteSquad = async (docId) => { if(!confirm("Delete this squad?")) return; await deleteDoc(doc(db, "teams", docId)); document.getElementById('open-view-teams-btn').click(); };
@@ -321,9 +326,18 @@
             } catch(e) { area.innerHTML = `<p class="text-red-500 text-center text-xs">Failed to load history.</p>`; console.error(e); }
         };
 
+        // Updated open-voting logic to check for locks
         document.getElementById('open-voting-btn').addEventListener('click', async () => {
             const btn = document.getElementById('open-voting-btn'); btn.innerHTML = `<span class="text-lg animate-spin">⏳</span> Loading...`;
             try {
+                // Check if edition is locked by Admin
+                const lockDoc = await getDoc(doc(db, "settings", "locks"));
+                if (lockDoc.exists() && lockDoc.data()[selectedEdition] === true) {
+                    alert("Voting has been locked by the Admin! Head to the Leaderboard to see the Final Results.");
+                    btn.innerHTML = `<span class="text-lg">🏆</span> Vote Phase`;
+                    return;
+                }
+
                 const snap = await getDocs(query(collection(db, "teams"), where("edition", "==", selectedEdition)));
                 if (snap.size < 10) { alert(`Voting unlocks when exactly 10 teams are submitted! \nCurrently Uploaded: ${snap.size}/10`); btn.innerHTML = `<span class="text-lg">🏆</span> Vote Phase`; return; }
                 currentTeamsList = []; myOwnTeamId = null; snap.forEach(docSnap => { const data = docSnap.data(); currentTeamsList.push({ id: docSnap.id, ...data }); if (data.manager_email === auth.currentUser.email) myOwnTeamId = docSnap.id; });
@@ -356,19 +370,32 @@
         });
 
         // ----------------------------------------------------------------------
-        // LIVE LEADERBOARD ENGINE (WITH TRANSPARENT VOTER TRACKING)
+        // LIVE LEADERBOARD ENGINE (WITH CROWNS AND LOCK DETECTION)
         // ----------------------------------------------------------------------
         document.getElementById('open-view-teams-btn').addEventListener('click', async () => {
             navigateTo('carousel-container-view');
             const track = document.getElementById('carousel-track'); track.innerHTML = ''; document.getElementById('loading-text').classList.remove('hidden-view');
             try {
+                // Fetch lock status to determine if we show Final Results & Crowns
+                const lockDoc = await getDoc(doc(db, "settings", "locks"));
+                const isLocked = lockDoc.exists() && lockDoc.data()[selectedEdition] === true;
+                
+                // Update header dynamically based on lock status
+                const titleEl = document.getElementById('leaderboard-title');
+                if (isLocked) {
+                    titleEl.innerHTML = `👑 FINAL TOURNAMENT RESULTS 👑`;
+                    titleEl.classList.replace('text-yellow-500', 'text-yellow-400');
+                } else {
+                    titleEl.innerHTML = `📊 LIVE LEADERBOARD`;
+                    titleEl.classList.replace('text-yellow-400', 'text-yellow-500');
+                }
+
                 const teamsSnap = await getDocs(query(collection(db, "teams"), where("edition", "==", selectedEdition)));
                 const votesSnap = await getDocs(query(collection(db, "votes"), where("edition", "==", selectedEdition)));
                 document.getElementById('loading-text').classList.add('hidden-view');
                 if (teamsSnap.empty) { track.innerHTML = `<div class="w-full text-center text-slate-500 py-10 font-semibold">No teams submitted yet.</div>`; return; }
 
                 let scoreboard = {};
-                // Upgrade: R1, R2, R3 are now Arrays to store voter names instead of just numbers
                 teamsSnap.forEach(d => { scoreboard[d.id] = { id: d.id, ...d.data(), pts: 0, r1: [], r2: [], r3: [] }; });
                 
                 votesSnap.forEach(vDoc => { 
@@ -384,11 +411,21 @@
                 sortedTeams.forEach((teamData, index) => {
                     const adminBtnHTML = isAdmin ? `<button onclick="deleteSquad('${teamData.id}')" class="absolute top-4 right-4 bg-red-950/80 hover:bg-red-900 text-red-400 p-2 rounded-full shadow-lg transition backdrop-blur-md border border-red-900/50 z-30" title="Delete Squad"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" /></svg></button>` : '';
                     
+                    // Crown Logic for Top 3 when Locked
+                    let rankDisplay = `RANK ${index + 1}`;
+                    let crownFlair = "";
+                    if (isLocked && index < 3) {
+                        if (index === 0) rankDisplay = `👑 CHAMPION 👑`;
+                        else if (index === 1) rankDisplay = `👑 2ND PLACE 👑`;
+                        else if (index === 2) rankDisplay = `👑 3RD PLACE 👑`;
+                        crownFlair = "scale-110 shadow-yellow-500/50 animate-pulse"; // Make the top 3 pop!
+                    }
+                    
                     track.innerHTML += `
                         <div class="relative w-[320px] max-w-[85vw] flex-none snap-center flex flex-col items-center pt-2 group">
                             
-                            <div class="z-20 flex flex-col items-center mb-[-10px]">
-                                <div class="bg-gradient-to-b from-yellow-300 to-yellow-600 text-slate-950 font-black px-6 py-1 rounded-t-lg shadow-lg text-sm border-2 border-b-0 border-yellow-200 z-10 relative">RANK ${index + 1}</div>
+                            <div class="z-20 flex flex-col items-center mb-[-10px] ${crownFlair} transition-all">
+                                <div class="bg-gradient-to-b from-yellow-300 to-yellow-600 text-slate-950 font-black px-6 py-1 rounded-t-lg shadow-lg text-sm border-2 border-b-0 border-yellow-200 z-10 relative whitespace-nowrap">${rankDisplay}</div>
                                 <div class="bg-slate-950 text-yellow-500 font-bold px-4 py-1 rounded-b-lg border-2 border-t-0 border-yellow-600 text-xs w-[120px] text-center shadow-xl relative z-20">${teamData.pts} PTS</div>
                             </div>
 
@@ -443,4 +480,3 @@
     </script>
 </body>
 </html>
-
