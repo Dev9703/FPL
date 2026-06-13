@@ -116,8 +116,20 @@
             <button type="button" id="open-view-teams-btn" class="w-full bg-slate-900 border border-slate-600 hover:bg-slate-800 text-white font-bold py-3 rounded-lg active:scale-95 transition text-[11px] uppercase tracking-wider flex flex-col items-center justify-center gap-1 shadow-lg"><span class="text-lg">📊</span> Leaderboard</button>
             <button type="button" id="open-voting-btn" class="w-full bg-gradient-to-br from-yellow-600 to-amber-800 border border-yellow-500/50 hover:from-yellow-500 hover:to-amber-700 text-white font-bold py-3 rounded-lg active:scale-95 transition text-[11px] uppercase tracking-wider flex flex-col items-center justify-center gap-1 shadow-lg"><span class="text-lg">🏆</span> Vote Phase</button>
         </div>
+        
         <div id="submission-area" class="space-y-4 border-t border-slate-800 pt-4">
             <h3 class="font-black text-white tracking-wide uppercase">Submit Your Roster</h3>
+            
+            <!-- NEW: Proxy Team Upload Panel for Admins -->
+            <div id="admin-upload-proxy" class="hidden-view bg-slate-950 p-3 rounded-lg border border-red-900/50 mb-3 space-y-2 shadow-inner">
+                <h4 class="text-[10px] font-black text-red-500 uppercase tracking-widest flex items-center gap-1"><span>🛡️</span> Proxy Team Upload</h4>
+                <div class="flex gap-2">
+                    <input type="text" id="proxy-upload-name" placeholder="Manager's Name" class="flex-1 w-full p-2 rounded-lg bg-slate-900 border border-slate-700 text-white text-xs outline-none focus:border-red-500">
+                    <input type="email" id="proxy-upload-email" placeholder="Manager's Email" class="flex-1 w-full p-2 rounded-lg bg-slate-900 border border-slate-700 text-white text-xs outline-none focus:border-red-500">
+                </div>
+                <p class="text-[8px] text-slate-500 uppercase font-bold tracking-widest">Leave blank to submit as yourself.</p>
+            </div>
+
             <div>
                 <select id="team-name" class="w-full p-3 rounded-lg bg-slate-900 border border-slate-700 text-white focus:outline-none focus:border-yellow-500 transition">
                     <option value="" disabled selected>Select Franchise...</option>
@@ -128,12 +140,26 @@
             <div><textarea id="playing-xi" placeholder="Playing 11..." class="w-full p-3 rounded-lg bg-slate-900 border border-slate-700 text-white h-24 text-sm custom-scrollbar"></textarea></div>
             <button type="button" id="submit-squad-btn" class="w-full bg-yellow-600 text-slate-950 font-black py-3 rounded-lg uppercase tracking-widest">Submit Squad</button>
         </div>
+        
+        <!-- ADMIN DASHBOARD PANEL -->
         <div id="admin-dashboard-panel" class="hidden-view space-y-4 border-t border-red-900/50 pt-4 mt-6">
             <h3 class="font-black text-red-500 tracking-wide uppercase flex items-center gap-2">👑 Admin Settings</h3>
-            <button type="button" id="toggle-lock-btn" class="w-full bg-slate-900 border border-red-900 text-red-500 font-bold py-2 rounded-lg text-xs uppercase">Lock Edition</button>
+            <button type="button" id="toggle-lock-btn" class="w-full bg-slate-900 border border-red-900 text-red-500 font-bold py-2 rounded-lg text-xs uppercase hover:bg-slate-800 transition">Lock Edition</button>
+            
+            <div class="bg-slate-950 p-4 rounded-xl border border-yellow-900/40 space-y-3 mt-2 shadow-inner">
+                <h4 class="text-[10px] font-black text-yellow-500 uppercase tracking-widest flex justify-between items-center">
+                    <span>🛡️ Proxy Vote (Manual Entry)</span>
+                    <button type="button" id="refresh-proxy-btn" title="Refresh List" class="text-slate-400 hover:text-white">🔄</button>
+                </h4>
+                <select id="proxy-voter-select" class="w-full p-2 rounded-lg bg-slate-900 border border-slate-700 text-white text-sm focus:border-yellow-500 outline-none">
+                    <option value="">Loading Managers...</option>
+                </select>
+                <button type="button" id="proxy-vote-btn" class="w-full bg-yellow-900/40 text-yellow-500 hover:bg-yellow-900/60 transition font-bold py-2 rounded-lg text-xs border border-yellow-900/50 uppercase">Vote as Manager</button>
+            </div>
+
             <div class="bg-slate-950 p-4 rounded-xl border border-red-900/40 space-y-3 mt-2">
                 <input type="email" id="deactivate-email" placeholder="Ban User Email" class="w-full p-2 rounded-lg bg-slate-900 border border-slate-700 text-white text-sm">
-                <button type="button" id="deactivate-btn" class="w-full bg-red-900/40 text-red-400 font-bold py-2 rounded-lg text-xs border border-red-900/50 uppercase">Deactivate</button>
+                <button type="button" id="deactivate-btn" class="w-full bg-red-900/40 text-red-400 hover:bg-red-900/60 transition font-bold py-2 rounded-lg text-xs border border-red-900/50 uppercase">Deactivate</button>
             </div>
         </div>
     </main>
@@ -141,7 +167,7 @@
     <main id="voting-container" class="hidden-view glass-panel p-6 rounded-2xl w-full max-w-md shadow-2xl flex flex-col items-center">
         <div class="w-full flex justify-between items-start mb-4">
             <div><h2 class="text-xl font-black text-yellow-500">🏆 VOTE PHASE</h2><p class="text-[10px] text-slate-300 font-bold uppercase mt-1" id="voter-status-text"></p></div>
-            <button onclick="navigateTo('dashboard-container')" class="text-xs font-bold bg-slate-800 border border-slate-700 px-3 py-1 rounded text-white">Back</button>
+            <button onclick="closeVoting()" class="text-xs font-bold bg-slate-800 border border-slate-700 px-3 py-1 rounded text-white">Back</button>
         </div>
         <div class="flex gap-2 w-full mb-6" id="voting-slots-container"></div>
         <div class="w-full border-t border-slate-800 pt-4">
@@ -153,7 +179,6 @@
 
     <main id="carousel-container-view" class="hidden-view w-full max-w-md mt-4 space-y-4">
         <div class="flex justify-between items-center mb-4 px-2">
-            <!-- Added ID here to dynamically update the title -->
             <h2 id="leaderboard-title" class="text-lg font-black text-yellow-500 tracking-wide flex items-center gap-2">📊 LIVE LEADERBOARD</h2>
             <button onclick="navigateTo('dashboard-container')" class="text-xs font-bold bg-slate-800 border border-slate-700 px-3 py-1 rounded text-white">Back</button>
         </div>
@@ -201,6 +226,10 @@
         let myVotes = { 1: null, 2: null, 3: null };
         let currentTeamsList = [];
         let myOwnTeamId = null;
+        
+        // Proxy Voting State Variables
+        let proxyEmail = null;
+        let proxyName = null;
 
         const getTeamColor = (tName) => {
             if(!tName) return '#FBBF24'; const t = tName.toUpperCase();
@@ -214,6 +243,11 @@
             views[targetId].classList.remove('hidden-view');
             if(targetId === 'users-list-container') loadUsersDirectory();
         }
+
+        window.closeVoting = () => {
+            proxyEmail = null; proxyName = null;
+            navigateTo('dashboard-container');
+        };
 
         const grid = document.getElementById('edition-grid');
         for(let i=1; i<=10; i++) { grid.innerHTML += `<button class="edition-btn p-4 rounded-xl bg-slate-900 border border-slate-700 hover:border-yellow-500 text-sm font-bold transition text-slate-300" data-edition="Edition ${i}">Edition ${i}</button>`; }
@@ -250,15 +284,43 @@
             }
         });
 
+        window.loadProxyDropdown = async () => {
+            if(!isAdmin || !selectedEdition) return;
+            const proxySelect = document.getElementById('proxy-voter-select');
+            proxySelect.innerHTML = '<option value="">Loading...</option>';
+            try {
+                const snap = await getDocs(query(collection(db, "teams"), where("edition", "==", selectedEdition)));
+                proxySelect.innerHTML = '<option value="">Select Manager...</option>';
+                snap.forEach(d => {
+                    proxySelect.innerHTML += `<option value="${d.data().manager_email}|${d.data().manager_name}">${d.data().manager_name} (${getTeamAcronym(d.data().team_name)})</option>`;
+                });
+            } catch(e) { proxySelect.innerHTML = '<option value="">Error Loading</option>'; }
+        };
+
+        document.getElementById('refresh-proxy-btn').addEventListener('click', loadProxyDropdown);
+
         document.querySelectorAll('.edition-btn').forEach(btn => {
             btn.addEventListener('click', async (e) => {
                 selectedEdition = e.target.getAttribute('data-edition'); document.getElementById('current-edition-title').innerText = selectedEdition;
-                if (isAdmin) { document.getElementById('admin-dashboard-panel').classList.remove('hidden-view'); document.getElementById('admin-nuke-panel').classList.remove('hidden-view'); } 
-                else { document.getElementById('admin-dashboard-panel').classList.add('hidden-view'); document.getElementById('admin-nuke-panel').classList.add('hidden-view'); }
+                
+                // Show Admin Tools
+                if (isAdmin) { 
+                    document.getElementById('admin-dashboard-panel').classList.remove('hidden-view'); 
+                    document.getElementById('admin-nuke-panel').classList.remove('hidden-view');
+                    document.getElementById('admin-upload-proxy').classList.remove('hidden-view'); 
+                    loadProxyDropdown();
+                } else { 
+                    document.getElementById('admin-dashboard-panel').classList.add('hidden-view'); 
+                    document.getElementById('admin-nuke-panel').classList.add('hidden-view');
+                    document.getElementById('admin-upload-proxy').classList.add('hidden-view'); 
+                }
+                
                 const lockDoc = await getDoc(doc(db, "settings", "locks")); const isLocked = lockDoc.exists() && lockDoc.data()[selectedEdition] === true;
                 document.getElementById('toggle-lock-btn').innerText = isLocked ? "🔓 Unlock Edition" : "🔒 Lock Edition";
+                
                 if(isLocked && !isAdmin) { document.getElementById('submission-area').style.display = 'none'; alert("Edition Locked."); } 
                 else { document.getElementById('submission-area').style.display = 'block'; document.getElementById('team-name').value = ""; }
+                
                 navigateTo('dashboard-container');
             });
         });
@@ -268,7 +330,6 @@
             await setDoc(doc(db, "settings", "banned_users"), { [e]: true }, { merge: true }); alert(`Banned ${e}`); document.getElementById('deactivate-email').value = '';
         });
         
-        // Updated Lock button logic to announce results
         document.getElementById('toggle-lock-btn').addEventListener('click', async () => {
             const ref = doc(db, "settings", "locks"); const docSnap = await getDoc(ref); let locked = docSnap.exists() && docSnap.data()[selectedEdition] === true;
             await setDoc(ref, { [selectedEdition]: !locked }, { merge: true }); 
@@ -284,17 +345,60 @@
             alert("Nuked completely."); document.getElementById('open-view-teams-btn').click(); 
         };
 
+        // Modified Submission Logic to handle Proxy Uploads
         document.getElementById('submit-squad-btn').addEventListener('click', async () => {
-            const teamName = document.getElementById('team-name').value; const xi = document.getElementById('playing-xi').value; const file = document.getElementById('squad-image').files[0];
-            const btn = document.getElementById('submit-squad-btn'); if(!teamName || !xi) return alert("Fill Franchise and Playing 12!");
+            const teamName = document.getElementById('team-name').value; 
+            const xi = document.getElementById('playing-xi').value; 
+            const file = document.getElementById('squad-image').files[0];
+            const btn = document.getElementById('submit-squad-btn'); 
+            
+            if(!teamName || !xi) return alert("Fill Franchise and Playing 12!");
+            
+            // Check for Proxy Credentials
+            let finalEmail = auth.currentUser.email;
+            let finalName = auth.currentUser.displayName || "Unknown";
+
+            if (isAdmin) {
+                const pName = document.getElementById('proxy-upload-name').value.trim();
+                const pEmail = document.getElementById('proxy-upload-email').value.trim();
+                if (pName && pEmail) {
+                    finalName = pName;
+                    finalEmail = pEmail;
+                } else if (pName || pEmail) {
+                    return alert("Proxy Upload Error: Please fill in BOTH the Manager's Name and Email, or leave both blank to submit as yourself.");
+                }
+            }
+
             btn.disabled = true; let url = "https://via.placeholder.com/400x400.png?text=No+Screenshot";
             try {
                 if(file) {
                     btn.innerText = "UPLOADING..."; const fd = new FormData(); fd.append('file', file); fd.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
                     const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`, {method:'POST', body:fd}); const d = await res.json(); if(d.secure_url) url = d.secure_url;
                 }
-                btn.innerText = "SAVING..."; await addDoc(collection(db, "teams"), { manager_email: auth.currentUser.email, manager_name: auth.currentUser.displayName || "Unknown", edition: selectedEdition, team_name: teamName, playing_xi: xi, image_url: url, timestamp: serverTimestamp() });
-                alert("Submitted!"); document.getElementById('team-name').value=''; document.getElementById('playing-xi').value=''; document.getElementById('squad-image').value='';
+                btn.innerText = "SAVING..."; 
+                await addDoc(collection(db, "teams"), { 
+                    manager_email: finalEmail, 
+                    manager_name: finalName, 
+                    edition: selectedEdition, 
+                    team_name: teamName, 
+                    playing_xi: xi, 
+                    image_url: url, 
+                    timestamp: serverTimestamp(),
+                    uploaded_by_admin: (finalEmail !== auth.currentUser.email)
+                });
+                
+                alert(`Submitted successfully${finalEmail !== auth.currentUser.email ? ' on behalf of ' + finalName : ''}!`); 
+                
+                // Clear Form
+                document.getElementById('team-name').value=''; 
+                document.getElementById('playing-xi').value=''; 
+                document.getElementById('squad-image').value='';
+                
+                if(isAdmin) {
+                    document.getElementById('proxy-upload-name').value='';
+                    document.getElementById('proxy-upload-email').value='';
+                    loadProxyDropdown(); // Instantly update the proxy voting dropdown!
+                }
             } catch (e) { alert("Error: " + e.message); } finally { btn.innerText = "Submit Squad"; btn.disabled = false; }
         });
 
@@ -326,24 +430,55 @@
             } catch(e) { area.innerHTML = `<p class="text-red-500 text-center text-xs">Failed to load history.</p>`; console.error(e); }
         };
 
-        // Updated open-voting logic to check for locks
-        document.getElementById('open-voting-btn').addEventListener('click', async () => {
-            const btn = document.getElementById('open-voting-btn'); btn.innerHTML = `<span class="text-lg animate-spin">⏳</span> Loading...`;
+        const initVoting = async (voterEmail, voterName, isProxy = false) => {
+            const btn = isProxy ? document.getElementById('proxy-vote-btn') : document.getElementById('open-voting-btn'); 
+            const originalText = btn.innerHTML;
+            btn.innerHTML = `<span class="text-lg animate-spin">⏳</span> Loading...`;
             try {
-                // Check if edition is locked by Admin
                 const lockDoc = await getDoc(doc(db, "settings", "locks"));
-                if (lockDoc.exists() && lockDoc.data()[selectedEdition] === true) {
+                if (!isAdmin && lockDoc.exists() && lockDoc.data()[selectedEdition] === true) {
                     alert("Voting has been locked by the Admin! Head to the Leaderboard to see the Final Results.");
-                    btn.innerHTML = `<span class="text-lg">🏆</span> Vote Phase`;
-                    return;
+                    btn.innerHTML = originalText; return;
                 }
 
                 const snap = await getDocs(query(collection(db, "teams"), where("edition", "==", selectedEdition)));
-                if (snap.size < 10) { alert(`Voting unlocks when exactly 10 teams are submitted! \nCurrently Uploaded: ${snap.size}/10`); btn.innerHTML = `<span class="text-lg">🏆</span> Vote Phase`; return; }
-                currentTeamsList = []; myOwnTeamId = null; snap.forEach(docSnap => { const data = docSnap.data(); currentTeamsList.push({ id: docSnap.id, ...data }); if (data.manager_email === auth.currentUser.email) myOwnTeamId = docSnap.id; });
-                const myTeamName = myOwnTeamId ? currentTeamsList.find(t=>t.id===myOwnTeamId).team_name : "None"; document.getElementById('voter-status-text').innerHTML = `MANAGER: <span class="text-yellow-500">${auth.currentUser.displayName}</span> <br> (TEAM ${getTeamAcronym(myTeamName)} - Self-Vote Disabled)`;
-                const voteDoc = await getDoc(doc(db, "votes", `${selectedEdition}_${auth.currentUser.email}`)); myVotes = voteDoc.exists() ? voteDoc.data().votes : { 1: null, 2: null, 3: null }; renderVotingUI(); navigateTo('voting-container');
-            } catch(e) { alert("Error: " + e.message); } btn.innerHTML = `<span class="text-lg">🏆</span> Vote Phase`;
+                if (snap.size < 10 && !isAdmin) { alert(`Voting unlocks when exactly 10 teams are submitted!`); btn.innerHTML = originalText; return; }
+
+                currentTeamsList = []; myOwnTeamId = null; 
+                snap.forEach(docSnap => { 
+                    const data = docSnap.data(); 
+                    currentTeamsList.push({ id: docSnap.id, ...data }); 
+                    if (data.manager_email === voterEmail) myOwnTeamId = docSnap.id; 
+                });
+
+                proxyEmail = isProxy ? voterEmail : null;
+                proxyName = isProxy ? voterName : null;
+
+                const myTeamName = myOwnTeamId ? currentTeamsList.find(t=>t.id===myOwnTeamId).team_name : "None"; 
+                
+                let statusHtml = `MANAGER: <span class="text-yellow-500">${voterName}</span> <br> (TEAM ${getTeamAcronym(myTeamName)} - Self-Vote Disabled)`;
+                if (isProxy) statusHtml = `<span class="text-red-500 font-black tracking-widest text-xs mb-1 block">ADMIN PROXY MODE</span>` + statusHtml;
+                
+                document.getElementById('voter-status-text').innerHTML = statusHtml;
+
+                const voteDoc = await getDoc(doc(db, "votes", `${selectedEdition}_${voterEmail}`)); 
+                myVotes = voteDoc.exists() ? voteDoc.data().votes : { 1: null, 2: null, 3: null }; 
+                
+                renderVotingUI(); 
+                navigateTo('voting-container');
+            } catch(e) { alert("Error: " + e.message); } 
+            btn.innerHTML = originalText;
+        };
+
+        document.getElementById('open-voting-btn').addEventListener('click', () => {
+            initVoting(auth.currentUser.email, auth.currentUser.displayName || "Unknown", false);
+        });
+
+        document.getElementById('proxy-vote-btn').addEventListener('click', () => {
+            const val = document.getElementById('proxy-voter-select').value;
+            if(!val) return alert("Select a manager to proxy vote for!");
+            const [e, n] = val.split('|');
+            initVoting(e, n, true);
         });
 
         window.renderVotingUI = () => {
@@ -364,23 +499,43 @@
         };
 
         window.castVote = (rank, teamId) => { myVotes[rank] = myVotes[rank] === teamId ? null : teamId; renderVotingUI(); }
+        
         document.getElementById('submit-votes-btn').addEventListener('click', async () => {
-            document.getElementById('submit-votes-btn').innerText = "SAVING...";
-            try { await setDoc(doc(db, "votes", `${selectedEdition}_${auth.currentUser.email}`), { edition: selectedEdition, voter_email: auth.currentUser.email, voter_name: auth.currentUser.displayName, votes: myVotes, timestamp: serverTimestamp() }); alert("Rankings locked in!"); navigateTo('dashboard-container'); } catch (e) { alert("Failed: " + e.message); }
+            const btn = document.getElementById('submit-votes-btn');
+            btn.innerText = "SAVING...";
+            
+            const targetEmail = proxyEmail || auth.currentUser.email;
+            const targetName = proxyName || auth.currentUser.displayName || "Unknown";
+            
+            try { 
+                await setDoc(doc(db, "votes", `${selectedEdition}_${targetEmail}`), { 
+                    edition: selectedEdition, 
+                    voter_email: targetEmail, 
+                    voter_name: targetName, 
+                    votes: myVotes, 
+                    timestamp: serverTimestamp(),
+                    proxy_by_admin: !!proxyEmail
+                }); 
+                
+                alert(proxyEmail ? `Proxy votes for ${targetName} locked in!` : "Rankings locked in!"); 
+                proxyEmail = null; proxyName = null; 
+                navigateTo('dashboard-container'); 
+            } catch (e) { 
+                alert("Failed: " + e.message); 
+                btn.innerText = "Submit Rankings"; 
+            }
         });
 
         // ----------------------------------------------------------------------
-        // LIVE LEADERBOARD ENGINE (WITH CROWNS AND LOCK DETECTION)
+        // LIVE LEADERBOARD ENGINE
         // ----------------------------------------------------------------------
         document.getElementById('open-view-teams-btn').addEventListener('click', async () => {
             navigateTo('carousel-container-view');
             const track = document.getElementById('carousel-track'); track.innerHTML = ''; document.getElementById('loading-text').classList.remove('hidden-view');
             try {
-                // Fetch lock status to determine if we show Final Results & Crowns
                 const lockDoc = await getDoc(doc(db, "settings", "locks"));
                 const isLocked = lockDoc.exists() && lockDoc.data()[selectedEdition] === true;
                 
-                // Update header dynamically based on lock status
                 const titleEl = document.getElementById('leaderboard-title');
                 if (isLocked) {
                     titleEl.innerHTML = `👑 FINAL TOURNAMENT RESULTS 👑`;
@@ -411,14 +566,13 @@
                 sortedTeams.forEach((teamData, index) => {
                     const adminBtnHTML = isAdmin ? `<button onclick="deleteSquad('${teamData.id}')" class="absolute top-4 right-4 bg-red-950/80 hover:bg-red-900 text-red-400 p-2 rounded-full shadow-lg transition backdrop-blur-md border border-red-900/50 z-30" title="Delete Squad"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" /></svg></button>` : '';
                     
-                    // Crown Logic for Top 3 when Locked
                     let rankDisplay = `RANK ${index + 1}`;
                     let crownFlair = "";
                     if (isLocked && index < 3) {
                         if (index === 0) rankDisplay = `👑 CHAMPION 👑`;
                         else if (index === 1) rankDisplay = `👑 2ND PLACE 👑`;
                         else if (index === 2) rankDisplay = `👑 3RD PLACE 👑`;
-                        crownFlair = "scale-110 shadow-yellow-500/50 animate-pulse"; // Make the top 3 pop!
+                        crownFlair = "scale-110 shadow-yellow-500/50 animate-pulse";
                     }
                     
                     track.innerHTML += `
